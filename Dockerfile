@@ -11,6 +11,7 @@ WORKDIR /app
 # Install system dependencies for mysqlclient
 RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
+    default-mysql-client \
     gcc \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
@@ -22,8 +23,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container at /app
 COPY . /app/
 
+# Make entrypoint executable
+RUN chmod +x /app/entrypoint.sh
+
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
