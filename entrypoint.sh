@@ -1,11 +1,7 @@
 #!/bin/sh
 
-# Wait for MySQL to be ready
-echo "Waiting for MySQL..."
-while ! mysqladmin ping -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" -p"$DB_PASSWORD" --silent; do
-    sleep 1
-done
-echo "MySQL is up!"
+# Seed delay to ensure network is fully stable
+sleep 2
 
 # Run migrations
 echo "Running migrations..."

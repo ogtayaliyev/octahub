@@ -125,8 +125,18 @@ def get_media_from_page(url, session):
             
     # Clean and filter images (remove tracking dots/tiny spacers)
     final_images = []
+    seen_paths = set() # To prevent duplicates even with different query params
+    
     for img_url in set(images):
-        if img_url.startswith('http') and not any(x in img_url.lower() for x in ['pixel', 'tracking', 'analytics']):
+        if img_url.startswith('http'):
+            # Normalize URL: remove query params and tiny tracking pixels
+            clean_url = img_url.split('?')[0].split('#')[0]
+            url_path = clean_url.lower()
+            
+            if url_path in seen_paths: continue
+            if any(x in img_url.lower() for x in ['pixel', 'tracking', 'analytics', 'spacer', 'transparent.gif']): continue
+            
+            seen_paths.add(url_path)
             final_images.append(img_url)
 
     return final_images, videos, icons, list(set(links))
