@@ -311,27 +311,90 @@ def scrape(request):
         if not url_raw: return JsonResponse({'error': 'URL manquant'}, status=400)
         start_url = normalize_url(url_raw)
         session = requests.Session()
-        all_imgs, all_vids, all_icons, visited, queue = [], [], [], set(), [start_url]
         deep_scan = request.POST.get('deep_scan') == 'on'
-        while queue and len(visited) < (10 if deep_scan else 1):
+        limit = 25 if deep_scan else 5
+
+        # Pre-populate queue with common important pages so they are always scanned
+        base = start_url.rstrip('/')
+        common_pages = [start_url, f"{base}/a-propos", f"{base}/about", f"{base}/services",
+                        f"{base}/equipe", f"{base}/team", f"{base}/contact",
+                        f"{base}/products", f"{base}/produits", f"{base}/gallery", f"{base}/galerie"]
+
+        all_imgs, all_vids, all_icons, visited, queue = [], [], [], set(), common_pages[:]
+
+        while queue and len(visited) < limit:
             url = queue.pop(0)
             if url in visited: continue
             visited.add(url)
             imgs, vids, icons, links = get_media_from_page(url, session)
             all_imgs.extend(imgs); all_vids.extend(vids); all_icons.extend(icons)
-            if deep_scan:
+            if deep_scan or len(visited) < limit:
                 for l in links:
                     if l not in visited and l not in queue: queue.append(l)
-        final_imgs_urls = list(dict.fromkeys(all_imgs))
-        final_imgs = []
-        for u in final_imgs_urls[:400]:
-            name = os.path.basename(urlparse(u).path)
-            if not name or '.' not in name: name = "image_" + str(uuid.uuid4())[:6]
-            final_imgs.append({'url': u, 'name': name})
-        final_vids = [{'url': u, 'name': f"Video {i+1}"} for i, u in enumerate(list(dict.fromkeys(all_vids))[:50])]
-        final_icons = [{'url': u, 'name': f"Icon {i+1}"} for i, u in enumerate(list(dict.fromkeys(all_icons))[:100])]
-        request.session['scraped_media'] = {'images': [m['url'] for m in final_imgs], 'videos': [m['url'] for m in final_vids], 'icons': [m['url'] for m in final_icons]}
-        return JsonResponse({'images': final_imgs, 'videos': final_vids, 'icons': final_icons})
+
+        # ─── Global Smart Deduplication & Classification ────────────────
+        final_imgs, final_svgs, final_logos, final_vids_from_imgs = [], [], [], []
+        seen_fingerprints = set() # Unique signatures based on filename base
+
+        VIDEO_EXTS   = ('.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv')
+        SVG_EXT      = '.svg'
+        IMG_EXTS     = ('.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.bmp', '.tiff', '.heic')
+
+        for u in all_imgs: # Process all images collected from all pages
+            parsed  = urlparse(u)
+            path    = parsed.path.lower()
+            # Generate a fingerprint (filename without extension and without query params)
+            filename = os.path.basename(path)
+            if not filename or '.' not in filename: 
+                fingerprint = u # fallback to full URL
+            else:
+                fingerprint = os.path.splitext(filename)[0]
+
+            if fingerprint in seen_fingerprints: continue
+            seen_fingerprints.add(fingerprint)
+
+            name = filename if filename else "file_" + str(uuid.uuid4())[:6]
+
+            if path.endswith(VIDEO_EXTS):
+                final_vids_from_imgs.append({'url': u, 'name': name})
+            elif path.endswith(SVG_EXT):
+                final_svgs.append({'url': u, 'name': name})
+            elif 'logo' in path or 'brand' in path or 'favicon' in path:
+                final_logos.append({'url': u, 'name': name})
+            elif any(path.endswith(ext) for ext in IMG_EXTS):
+                final_imgs.append({'url': u, 'name': name})
+            else:
+                final_imgs.append({'url': u, 'name': name})
+
+        # Limit results for UX
+        final_imgs = final_imgs[:500]
+        final_logos = final_logos[:100]
+
+        # Merge video sources from HTML video tags
+        all_vids_merged = list(dict.fromkeys(all_vids))
+        for u in all_vids_merged[:50]:
+            v_name = os.path.basename(urlparse(u).path) or f"Video {len(final_vids_from_imgs)+1}"
+            final_vids_from_imgs.append({'url': u, 'name': v_name})
+
+        # Favicons / link-rel icons
+        final_icons_list = [{'url': u, 'name': os.path.basename(urlparse(u).path) or f"Icon {i+1}"}
+                            for i, u in enumerate(list(dict.fromkeys(all_icons))[:100])]
+
+        # Merge SVGs and icons
+        final_icons_merged = final_svgs[:100] + final_icons_list
+
+        request.session['scraped_media'] = {
+            'images': [m['url'] for m in final_imgs],
+            'videos': [m['url'] for m in final_vids_from_imgs],
+            'icons':  [m['url'] for m in final_icons_merged],
+            'logos':  [m['url'] for m in final_logos],
+        }
+        return JsonResponse({
+            'images': final_imgs,
+            'videos': final_vids_from_imgs,
+            'icons':  final_icons_merged,
+            'logos':  final_logos,
+        })
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 @login_required

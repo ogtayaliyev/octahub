@@ -122,11 +122,13 @@
     <div class="results" id="results-container">
         <div class="tabs">
             <div class="tab active" data-target="image-grid">Images (<span id="count-images">0</span>)</div>
+            <div class="tab" data-target="logo-grid">Logos (<span id="count-logos">0</span>)</div>
             <div class="tab" data-target="video-grid">Vidéos (<span id="count-videos">0</span>)</div>
             <div class="tab" data-target="icon-grid">Icônes (<span id="count-icons">0</span>)</div>
         </div>
 
         <div class="grid active media-grid" id="image-grid"></div>
+        <div class="grid media-grid" id="logo-grid"></div>
         <div class="grid media-grid" id="video-grid"></div>
         <div class="grid media-grid" id="icon-grid"></div>
     </div>
@@ -161,7 +163,10 @@
         e.preventDefault();
         resultsContainer.style.display = 'none';
         downloadAllBtn.style.display = 'none';
-        ['image-grid', 'video-grid', 'icon-grid'].forEach(id => document.getElementById(id).innerHTML = '');
+        ['image-grid', 'video-grid', 'icon-grid', 'logo-grid'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.innerHTML = '';
+        });
         
         progressContainer.style.display = 'block';
         submitBtn.disabled = true;
@@ -204,6 +209,20 @@
                             <div class="media-info"><span>${img.name}</span></div>
                         `;
                         document.getElementById('image-grid').appendChild(card);
+                    });
+
+                    // Populate Logos
+                    document.getElementById('count-logos').innerText = data.logos.length;
+                    data.logos.forEach(logo => {
+                        const card = document.createElement('div');
+                        card.className = 'media-card';
+                        card.innerHTML = `
+                            <div class="media-img-wrapper" style="background:#f8fafc;">
+                                <img src="${logo.url}" loading="lazy" style="max-height:120px;">
+                            </div>
+                            <div class="media-info"><span>${logo.name}</span></div>
+                        `;
+                        document.getElementById('logo-grid').appendChild(card);
                     });
 
                     // Populate Videos
