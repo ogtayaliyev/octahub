@@ -135,21 +135,31 @@
                         card.className = 'form-card';
                         card.innerHTML = `
                             <div class="form-header">
-                                <h3 style="color: var(--text-main);">ID: ${f.id}</h3>
-                                <div style="display: flex; gap: 0.5rem;">
+                                <div>
+                                    <h3 style="color: var(--text-main); margin-bottom: 0.25rem;">${f.id}</h3>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <span class="form-tag" style="background:#fef3c7; color:#92400e;">${f.tech}</span>
+                                        <span class="form-tag" style="background:#dcfce7; color:#166534;">Page: ${f.page}</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; flex-direction: column; align-items: flex-end;">
                                     <span class="form-tag">${f.method}</span>
-                                    <span class="form-tag" style="background: #e0f2fe; color: #0369a1;">Action: ${f.action}</span>
+                                    <span class="form-tag" style="font-size:0.65rem; background: #e0f2fe; color: #0369a1;">Action: ${f.action}</span>
                                 </div>
                             </div>
                             <div class="inputs-list">
-                                ${f.inputs.map(inp => `
+                                ${f.fields.map(field => `
                                     <div class="input-item">
-                                        <span class="input-type">${inp.type}</span>
-                                        <span style="font-weight: 600; flex: 1;">${inp.label}</span>
-                                        <span class="input-name">name="${inp.name}"</span>
-                                        ${inp.required ? '<span style="color:var(--danger); font-size:1.2rem;">*</span>' : ''}
+                                        <span class="input-type">${field.type}</span>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">${field.label} ${field.required ? '<span style="color:var(--danger);">*</span>' : ''}</div>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <span class="input-name">name="${field.name}"</span>
+                                                <span class="input-name" style="background:#f1f5f9; color:var(--text-muted); border-color:#e2e8f0;">id="${field.id}"</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                `).join('') || '<p style="color:var(--text-muted);">Aucun input détecté dans ce formulaire.</p>'}
+                                `).join('') || '<p style="color:var(--text-muted);">Aucun champ détecté.</p>'}
                             </div>
                         `;
                         resultsList.appendChild(card);
