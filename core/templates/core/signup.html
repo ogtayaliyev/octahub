@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S'inscrire | OctaScraper</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        form p {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: var(--text-main);
+        }
+        form input {
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+            color: var(--text-main);
+            outline: none;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        form input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .errorlist {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            list-style: none;
+            padding: 0;
+        }
+        .helptext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body class="centered-body">
+    <div class="auth-container animate-fade-in">
+        <h2 style="margin-bottom: 2rem; text-align: center; color: var(--text-main);">Inscription</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" style="width: 100%; justify-content: center; margin-top: 1rem;">Créer mon compte</button>
+        </form>
+        <p style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+            Déjà inscrit ? <a href="{% url 'login' %}" style="color: var(--accent);">Se connecter</a>
+        </p>
+    </div>
+</body>
+</html>

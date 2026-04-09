@@ -1,0 +1,250 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}OctaScraper | Multi-Media Downloader{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2.5rem;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 20px;
+        width: fit-content;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+    .video-card {
+        background: white;
+        border-radius: 24px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .video-card .media-info {
+        padding: 0;
+    }
+    .tab {
+        padding: 0.8rem 1.8rem;
+        border-radius: 15px;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-weight: 700;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    .tab:hover {
+        color: var(--text-main);
+        background: #f1f5f9;
+    }
+    .tab.active {
+        background: var(--text-main);
+        color: white;
+    }
+    .media-grid {
+        display: none;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+    .media-grid.active {
+        display: grid;
+    }
+    .media-img-wrapper {
+        height: 180px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        border-radius: 20px 20px 0 0;
+    }
+    .media-card img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    .media-info {
+        padding: 1rem;
+        background: white;
+    }
+    .media-info span {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+        <div>
+            <h1>OctaScraper</h1>
+            <p class="subtitle" style="text-align: left;">Images, Vidéos, Icônes : Récupérez tout en un clic.</p>
+        </div>
+        <button id="download-all-btn" style="display: none; background: var(--success);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Tout exporter (.ZIP)
+        </button>
+    </div>
+    
+    <form id="scrape-form">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+            <button type="submit" id="submit-btn" style="padding: 0.75rem 3rem;">
+                <span>Lancer le Scan</span>
+            </button>
+        </div>
+        <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
+            <label for="deep-scan">Scan profond (parcourir tout le site)</label>
+        </div>
+    </form>
+
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="status-text">Récupération des médias en cours...</p>
+    </div>
+
+    <div class="results" id="results-container">
+        <div class="tabs">
+            <div class="tab active" data-target="image-grid">Images (<span id="count-images">0</span>)</div>
+            <div class="tab" data-target="video-grid">Vidéos (<span id="count-videos">0</span>)</div>
+            <div class="tab" data-target="icon-grid">Icônes (<span id="count-icons">0</span>)</div>
+        </div>
+
+        <div class="grid active media-grid" id="image-grid"></div>
+        <div class="grid media-grid" id="video-grid"></div>
+        <div class="grid media-grid" id="icon-grid"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('scrape-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const statusText = document.getElementById('status-text');
+    const resultsContainer = document.getElementById('results-container');
+    const downloadAllBtn = document.getElementById('download-all-btn');
+
+    // Tab Logic
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.media-grid').forEach(g => g.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.target).classList.add('active');
+        };
+    });
+
+    downloadAllBtn.onclick = () => {
+        window.location.href = '{% url "download_zip" %}';
+    };
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        resultsContainer.style.display = 'none';
+        downloadAllBtn.style.display = 'none';
+        ['image-grid', 'video-grid', 'icon-grid'].forEach(id => document.getElementById(id).innerHTML = '');
+        
+        progressContainer.style.display = 'block';
+        submitBtn.disabled = true;
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += (90 - progress) * 0.1;
+                progressFill.style.width = `${progress}%`;
+            }
+        }, 200);
+
+        const formData = new FormData(form);
+        try {
+            const response = await fetch('{% url "scrape" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await response.json();
+            clearInterval(interval);
+            if (response.ok) {
+                progressFill.style.width = '100%';
+                statusText.innerText = 'Récupération terminée !';
+                
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    resultsContainer.style.display = 'block';
+                    downloadAllBtn.style.display = 'flex';
+                    
+                    // Populate Images
+                    document.getElementById('count-images').innerText = data.images.length;
+                    data.images.forEach(img => {
+                        const card = document.createElement('div');
+                        card.className = 'media-card';
+                        card.innerHTML = `
+                            <div class="media-img-wrapper">
+                                <img src="${img.url}" loading="lazy">
+                            </div>
+                            <div class="media-info"><span>${img.name}</span></div>
+                        `;
+                        document.getElementById('image-grid').appendChild(card);
+                    });
+
+                    // Populate Videos
+                    document.getElementById('count-videos').innerText = data.videos.length;
+                    data.videos.forEach(vid => {
+                        const card = document.createElement('div');
+                        card.className = 'video-card';
+                        if (vid.url.includes('youtube.com') || vid.url.includes('vimeo.com')) {
+                             card.innerHTML = `<iframe src="${vid.url}" frameborder="0" style="width:100%; aspect-ratio:16/9; border-radius:12px;"></iframe><div class="media-info"><span>Lien Externe</span></div>`;
+                        } else {
+                            card.innerHTML = `<video style="width:100%; border-radius:12px;" controls><source src="${vid.url}"></video><div class="media-info"><span>${vid.name}</span></div>`;
+                        }
+                        document.getElementById('video-grid').appendChild(card);
+                    });
+
+                    // Populate Icons
+                    document.getElementById('count-icons').innerText = data.icons.length;
+                    data.icons.forEach(ico => {
+                        const card = document.createElement('div');
+                        card.className = 'media-card';
+                        card.innerHTML = `
+                            <div class="media-img-wrapper">
+                                <img src="${ico.url}" style="width:48px; height:48px; object-fit:contain;">
+                            </div>
+                            <div class="media-info"><span>${ico.name}</span></div>
+                        `;
+                        document.getElementById('icon-grid').appendChild(card);
+                    });
+                    
+                }, 500);
+            } else {
+                progressContainer.style.display = 'none';
+                alert(data.error);
+            }
+        } catch (err) {
+            clearInterval(interval);
+            progressContainer.style.display = 'none';
+            alert('Erreur réseau');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    };
+</script>
+{% endblock %}

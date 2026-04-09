@@ -1,0 +1,215 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}OctaAudit | Performance Image Audit{% endblock %}
+
+{% block extra_css %}
+<style>
+    .audit-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    .summary-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .summary-card h3 {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+    .summary-card .value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+    .audit-table {
+        width: 100%;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th {
+        background: #f8fafc;
+        text-align: left;
+        padding: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+    td {
+        padding: 1rem;
+        border-top: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+    .badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fef9c3; color: #854d0e; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
+    <h1>OctaAudit</h1>
+    <p class="subtitle">Analysez le poids des images et optimisez les performances de votre site.</p>
+    
+    <form id="audit-form">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+            <button type="submit" id="submit-btn" style="padding: 0.75rem 3rem;">
+                <span>Lancer l'Audit</span>
+            </button>
+        </div>
+        <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
+            <label for="deep-scan">Scan profond (parcourir tout le site)</label>
+        </div>
+    </form>
+
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="status-text">Analyse des images en cours...</p>
+    </div>
+
+    <div id="results-container" style="display: none; margin-top: 3rem;">
+        <div class="audit-summary">
+            <div class="summary-card">
+                <h3>Images trouvées</h3>
+                <div class="value" id="count-imgs">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Poids Total</h3>
+                <div class="value" id="total-weight">0 MB</div>
+            </div>
+            <div class="summary-card">
+                <h3>Économie Potentielle</h3>
+                <div class="value" id="potential-savings" style="color: var(--success);">0 KB</div>
+            </div>
+        </div>
+
+        <div class="audit-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image URL</th>
+                        <th>Format</th>
+                        <th>Taille</th>
+                        <th>Status</th>
+                        <th>Optimisation (WebP)</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('audit-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const statusText = document.getElementById('status-text');
+    const resultsContainer = document.getElementById('results-container');
+    const tbody = document.getElementById('audit-tbody');
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        resultsContainer.style.display = 'none';
+        tbody.innerHTML = '';
+        progressContainer.style.display = 'block';
+        submitBtn.disabled = true;
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += (90 - progress) * 0.05;
+                progressFill.style.width = `${progress}%`;
+            }
+        }, 500);
+
+        const formData = new FormData(form);
+        try {
+            const response = await fetch('{% url "audit_scrape" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await response.json();
+            clearInterval(interval);
+            if (response.ok) {
+                progressFill.style.width = '100%';
+                statusText.innerText = 'Audit terminé !';
+                
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    resultsContainer.style.display = 'block';
+                    
+                    document.getElementById('count-imgs').innerText = data.img_count;
+                    document.getElementById('total-weight').innerText = data.total_size + ' MB';
+                    
+                    // Show scan depth if more than 1 page
+                    if (data.pages_scanned > 1) {
+                        statusText.innerText = `${data.pages_scanned} pages parcourues.`;
+                        statusText.style.display = 'block';
+                    }
+                    
+                    let savings = 0;
+                    data.results.forEach(res => {
+                        savings += res.potential_webp;
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                <a href="${res.url}" target="_blank" style="color:var(--primary);">${res.url}</a>
+                            </td>
+                            <td>${res.format}</td>
+                            <td>${res.size} KB</td>
+                            <td>
+                                <span class="badge ${res.is_optimized ? 'badge-success' : 'badge-warning'}">
+                                    ${res.is_optimized ? 'Optimisé' : 'À Optimiser'}
+                                </span>
+                            </td>
+                            <td style="color:var(--success); font-weight:bold;">
+                                ${res.potential_webp > 0 ? '-' + res.potential_webp + ' KB' : '-'}
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    document.getElementById('potential-savings').innerText = savings.toFixed(1) + ' KB';
+                    
+                }, 500);
+            } else {
+                progressContainer.style.display = 'none';
+                alert(data.error);
+            }
+        } catch (err) {
+            clearInterval(interval);
+            progressContainer.style.display = 'none';
+            alert('Erreur réseau');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Mon Profil | OctaHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-wrap {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .profile-card {
+        background: white;
+        padding: 3rem;
+        border-radius: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    .profile-avatar-large {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 50%;
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        font-weight: 800;
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+    }
+    .form-group input {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .form-group input:focus {
+        border-color: var(--primary);
+        background: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrap animate-fade-in">
+    <h1>Mon Profil</h1>
+    <p class="subtitle">Gérez vos informations personnelles et la sécurité de votre compte.</p>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar-large">
+                {{ request.user.username|first|upper }}
+            </div>
+            <h2 style="color: var(--text-main);">{{ request.user.username }}</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Membre depuis le {{ request.user.date_joined|date:"d F Y" }}</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="errorlist">
+                    {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <button type="submit" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                Mettre à jour mon profil
+            </button>
+        </form>
+
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+            <h4 style="color: var(--text-main); margin-bottom: 1rem;">Sécurité du compte</h4>
+            <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: var(--text-muted);">
+                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Cookies HTTPOnly activés
+                </li>
+                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Protection CSRF renforcée
+                </li>
+                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Session sécurisée
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

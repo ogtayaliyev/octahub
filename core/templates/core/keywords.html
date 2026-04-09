@@ -1,0 +1,175 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}OctaKeywords | Générateur de Mots-Clés Intelligent{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kw-form-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .kw-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: var(--primary);
+        background: #fff;
+    }
+    .results-card {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px dashed #cbd5e1;
+    }
+    .kw-tag {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 100px;
+        margin: 0.25rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--primary);
+    }
+    .strategy-box {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: rgba(99, 102, 241, 0.05);
+        border-left: 4px solid var(--primary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
+    <h1>OctaKeywords</h1>
+    <p class="subtitle">Générez une stratégie sémantique basée sur votre secteur et votre localisation.</p>
+
+    <div class="kw-form-container">
+        <div class="kw-card">
+            <form id="keywords-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Secteur d'activité</label>
+                    <input type="text" name="activity" placeholder="ex: Plomberie, Restaurant, SaaS" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Pays</label>
+                        <input type="text" name="country" placeholder="ex: France" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Région / Ville</label>
+                        <input type="text" name="region" placeholder="ex: Paris, Lyon">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Type de site</label>
+                    <select name="site_type">
+                        <option value="Vitrine">Site Vitrine</option>
+                        <option value="E-commerce">Boutique en ligne (E-commerce)</option>
+                        <option value="Blog">Blog / Média</option>
+                        <option value="Portfolio">Portfolio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description du site</label>
+                    <textarea name="description" rows="4" placeholder="Décrivez en quelques mots ce que vous proposez..."></textarea>
+                </div>
+                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
+                    Générer la stratégie
+                </button>
+            </form>
+        </div>
+
+        <div class="kw-card" id="results-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-muted);">
+            <div id="placeholder-text">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; opacity: 0.3;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14.7 8.38 8.38 0 0 1 3.8.9L21 3.5v8z"/></svg>
+                <p>Remplissez le formulaire pour voir vos mots-clés.</p>
+            </div>
+            
+            <div id="actual-results" style="display: none; width: 100%;">
+                <h3 style="color: var(--text-main); margin-bottom: 1.5rem;">Mots-clés suggérés</h3>
+                
+                <p style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Principaux</p>
+                <div id="main-keywords" style="margin-bottom: 2rem;"></div>
+
+                <p style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Longue Traîne</p>
+                <div id="long-tail-keywords"></div>
+
+                <div class="strategy-box" id="strategy-text"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('keywords-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const resultsArea = document.getElementById('results-area');
+    const placeholder = document.getElementById('placeholder-text');
+    const actualResults = document.getElementById('actual-results');
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Analyse en cours...';
+
+        const formData = new FormData(form);
+        try {
+            const response = await fetch('{% url "keywords_generate" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                placeholder.style.display = 'none';
+                actualResults.style.display = 'block';
+                resultsArea.style.justifyContent = 'flex-start';
+                resultsArea.style.alignItems = 'flex-start';
+
+                document.getElementById('main-keywords').innerHTML = data.main.map(kw => `<span class="kw-tag">${kw}</span>`).join('');
+                document.getElementById('long-tail-keywords').innerHTML = data.long_tail.map(kw => `<span class="kw-tag" style="color: var(--accent);">${kw}</span>`).join('');
+                document.getElementById('strategy-text').innerText = data.strategy;
+            }
+        } catch (err) {
+            alert('Erreur lors de la génération');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Générer la stratégie';
+        }
+    };
+</script>
+{% endblock %}

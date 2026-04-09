@@ -1,0 +1,278 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OctaHub | Comment ça marche ?</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #0ea5e9;
+            --bg: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.7);
+            --border: rgba(255, 255, 255, 0.3);
+        }
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.1) 0px, transparent 50%);
+            min-height: 100vh;
+            color: #0f172a;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(14, 165, 233, 0.15));
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: -1;
+            animation: float 15s infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+        .info-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+        .info-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .info-header h1 {
+            font-size: 3.5rem;
+            letter-spacing: -2px;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 5rem;
+        }
+        .tool-section {
+            padding: 2.5rem;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.02);
+            transition: transform 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .tool-section:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+        .tool-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .tool-section p {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: #475569;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        .feature-item {
+            background: rgba(255,255,255,0.5);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .feature-item h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .feature-item p {
+            font-size: 0.85rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 4rem;
+            padding: 0.8rem 1.5rem;
+            background: white;
+            border-radius: 100px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .back-link:hover {
+            color: var(--primary);
+            transform: translateX(-5px);
+        }
+        .logo-octagon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            color: white; font-weight: 800; font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob"></div>
+    <div class="info-wrap">
+        <a href="{% url 'landing' %}" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Retour à l'accueil
+        </a>
+
+        <div class="info-header">
+            <h1>Découvrez la puissance de <span style="color: var(--primary);">OctaHub</span></h1>
+            <p style="font-size: 1.2rem; color: var(--text-muted);">Un guide complet sur les outils qui composent notre suite d'analyse.</p>
+        </div>
+
+        <div class="tools-grid">
+            <!-- OctaScraper -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon">O</div> OctaScraper</h2>
+                <p>Extraction massive de médias visuels. Gère le lazy-loading et les structures complexes pour récupérer images, vidéos et icônes.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Multi-Format</h4>
+                        <p>Images, vidéos et icônes système.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Export ZIP</h4>
+                        <p>Archive organisée prête à l'emploi.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OctaSEO -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon" style="background:var(--accent);">O</div> OctaSEO</h2>
+                <p>Analyse sémantique et structurelle pour le référencement. Vérifie la hiérarchie des titres et l'équilibre des liens.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Audit Meta</h4>
+                        <p>Titres, descriptions et balises H.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Netlinking</h4>
+                        <p>Analyse des liens internes/externes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OctaAudit -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon" style="background:var(--danger);">O</div> OctaAudit</h2>
+                <p>Mesure et optimise les performances. Analyse le poids des fichiers pour accélérer le temps de chargement global.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Poids Réel</h4>
+                        <p>Audit précis de la taille des médias.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Optimisation</h4>
+                        <p>Suggestions de conversion WebP.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OctaForms -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon" style="background:#8b5cf6;">O</div> OctaForms</h2>
+                <p>Inspection technique des formulaires pour l'automatisation. Mappe les attributs sans ouvrir l'inspecteur.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Mappage ID</h4>
+                        <p>Extrait "name" et "id" des champs.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Validation</h4>
+                        <p>Audit des champs obligatoires.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OctaCrawler -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon" style="background:#10b981;">O</div> OctaCrawler</h2>
+                <p>Découverte de l'ADN technique. Identifie les technologies, les couleurs et les typographies d'un site.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Stack Tech</h4>
+                        <p>CMS, Frameworks et Librairies.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Design</h4>
+                        <p>Couleurs et polices extraites.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OctaMap -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon" style="background:#f59e0b;">O</div> OctaMap</h2>
+                <p>Visualisation de l'architecture par liens. Génère une carte hiérarchique du parcours utilisateur.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Diagrammes</h4>
+                        <p>Rendu visuel style Mind Map.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Structure</h4>
+                        <p>Analyse de la profondeur de lien.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OctaKeywords -->
+            <div class="tool-section">
+                <h2><div class="logo-octagon" style="background:#ec4899;">O</div> OctaKeywords</h2>
+                <p>Génération de stratégie de mots-clés par IA. Optimisez votre contenu selon votre activité et région.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Long Tail</h4>
+                        <p>Variantes géo-localisées précises.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Stratégie</h4>
+                        <p>Conseils de positionnement IA.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer style="text-align: center; padding: 2rem 0; color: var(--text-muted); border-top: 1px solid #e2e8f0;">
+            <p>© 2026 OctaHub - Votre suite d'outils web tout-en-un.</p>
+        </footer>
+    </div>
+</body>
+</html>

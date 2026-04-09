@@ -1,0 +1,185 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}OctaSEO | Analyse SEO Web{% endblock %}
+
+{% block extra_css %}
+<style>
+    .seo-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .seo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .seo-url {
+        font-size: 0.8rem;
+        color: var(--accent);
+        word-break: break-all;
+    }
+    .seo-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+    .meta-box h4 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+    .meta-value {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .tag {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
+    <h1>OctaSEO</h1>
+    <p class="subtitle">Analysez la structure SEO de n'importe quel site web.</p>
+    
+    <form id="seo-form">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+            <button type="submit" id="submit-btn">
+                <span>Analyser</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+        </div>
+        <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
+            <label for="deep-scan">Analyse multi-pages (jusqu'à 10 pages)</label>
+        </div>
+    </form>
+
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="status-text">Analyse SEO en cours...</p>
+    </div>
+
+    <div id="results-container" style="display: none; margin-top: 3rem;">
+        <h2 id="result-count" style="margin-bottom: 2rem;">Rapport SEO</h2>
+        <div id="seo-results-list"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('seo-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const statusText = document.getElementById('status-text');
+    const resultsContainer = document.getElementById('results-container');
+    const resultsList = document.getElementById('seo-results-list');
+    const resultCount = document.getElementById('result-count');
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        resultsContainer.style.display = 'none';
+        resultsList.innerHTML = '';
+        progressContainer.style.display = 'block';
+        submitBtn.disabled = true;
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += (90 - progress) * 0.05;
+                progressFill.style.width = `${progress}%`;
+            }
+        }, 300);
+
+        const formData = new FormData(form);
+        try {
+            const response = await fetch('{% url "seo_scrape" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await response.json();
+            clearInterval(interval);
+            if (response.ok) {
+                progressFill.style.width = '100%';
+                statusText.innerText = 'Analyse terminée !';
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    resultsContainer.style.display = 'block';
+                    resultCount.innerText = `${data.count} pages analysées`;
+                    
+                    data.results.forEach(res => {
+                        const card = document.createElement('div');
+                        card.className = 'seo-card';
+                        card.innerHTML = `
+                            <div class="seo-header">
+                                <h3 style="color: white;">${res.title}</h3>
+                                <span class="seo-url">${res.url}</span>
+                            </div>
+                            <div class="seo-meta">
+                                <div class="meta-box">
+                                    <h4>Description</h4>
+                                    <p class="meta-value">${res.description || 'N/A'}</p>
+                                </div>
+                                <div class="meta-box">
+                                    <h4>Liens</h4>
+                                    <p class="meta-value">Internes: ${res.links_internal} | Externes: ${res.links_external}</p>
+                                </div>
+                                <div class="meta-box">
+                                    <h4>Mots-clés (Meta)</h4>
+                                    <div class="tag-list">${res.keywords.map(k => `<span class="tag">${k}</span>`).join('') || 'N/A'}</div>
+                                </div>
+                                <div class="meta-box">
+                                    <h4>Mots-clés Détectés</h4>
+                                    <div class="tag-list">${res.detected_keywords.map(k => `<span class="tag" style="background: rgba(99, 102, 241, 0.2);">${k}</span>`).join('') || 'N/A'}</div>
+                                </div>
+                                <div class="meta-box">
+                                    <h4>H1 Tags</h4>
+                                    <div class="tag-list">${res.h1.map(t => `<span class="tag">${t}</span>`).join('') || 'N/A'}</div>
+                                </div>
+                                <div class="meta-box">
+                                    <h4>Balise Canonique</h4>
+                                    <p class="meta-value" style="font-size: 0.8rem; color: var(--text-muted);">${res.canonical || 'N/A'}</p>
+                                </div>
+                            </div>
+                        `;
+                        resultsList.appendChild(card);
+                    });
+                }, 500);
+            } else {
+                progressContainer.style.display = 'none';
+                alert(data.error);
+            }
+        } catch (err) {
+            clearInterval(interval);
+            progressContainer.style.display = 'none';
+            alert('Erreur réseau');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    };
+</script>
+{% endblock %}

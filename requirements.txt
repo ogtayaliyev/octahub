@@ -1,0 +1,6 @@
+Django>=4.0
+requests
+beautifulsoup4
+mysqlclient
+python-dotenv
+gunicorn
