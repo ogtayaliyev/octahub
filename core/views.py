@@ -87,15 +87,27 @@ def get_media_from_page(url, session):
                 else:
                     images.append(urljoin(url, val).split('#')[0])
 
-    # 3. CSS Backgrounds and Content (Styles tags and inline)
+    # 3. CSS Backgrounds and Content (Styles tags and external CSS)
     css_targets = []
-    for style in soup.find_all(['style', 'link']):
-        if style.name == 'style': css_targets.append(style.text)
-        elif style.get('rel') == ['stylesheet']:
-            # Maybe try fetching external CSS? (can be slow, but user wants everything)
-            pass
+    # Internal Styles
+    for style in soup.find_all('style'):
+        css_targets.append(style.text)
+    
+    # Inline Styles
     for tag in soup.find_all(style=True):
         css_targets.append(tag.get('style'))
+        
+    # External Styles (Try fetching .css files)
+    for css_link in soup.find_all('link', rel=['stylesheet', 'preload']):
+        c_href = css_link.get('href')
+        if c_href:
+            try:
+                css_url = urljoin(url, c_href)
+                # Only fetch if it's the same domain to avoid huge overhead
+                if urlparse(url).netloc in urlparse(css_url).netloc:
+                    css_resp = session.get(css_url, timeout=5, verify=False)
+                    if css_resp.ok: css_targets.append(css_resp.text)
+            except: pass
 
     for content in css_targets:
         found_urls = re.findall(r'url\(\s*[\'"]?(.*?)[\'"]?\s*\)', content)
@@ -103,11 +115,19 @@ def get_media_from_page(url, session):
             u = u.strip('\'" ')
             if not u or u.startswith('data:'): continue
             full_url = urljoin(url, u).split('#')[0]
-            # Verify it looks like an image if from CSS url()
             if any(full_url.lower().endswith(ext) for ext in IMG_EXTS) or 'image' in full_url.lower():
                 images.append(full_url)
 
-    # 4. Videos and Iframes
+    # 4. DEEP SCAN: regex on the entire page source for anything that looks like an image path
+    # This captures images hidden in JSON, JS variables, or weird attributes
+    raw_urls = re.findall(r'[\'"]([^\'"]*?\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico|heic)[^\'"]*?)[\'"]', response.text, re.I)
+    for r_u in raw_urls:
+        # Basic cleanup and joining
+        clean_ru = r_u.strip()
+        if clean_ru.startswith(('http', '/', './', '../')):
+            images.append(urljoin(url, clean_ru).split('#')[0])
+
+    # 5. Videos and Iframes
     for vid in soup.find_all(['video', 'source']):
         src = vid.get('src') or vid.get('data-src')
         if src: videos.append(urljoin(url, src).split('#')[0])
