@@ -1,38 +1,86 @@
-{% extends 'core/base.html' %}
+﻿{% extends 'core/base.html' %}
 {% load static %}
 
 {% block title %}Mon Profil | OctaHub{% endblock %}
 
 {% block extra_css %}
 <style>
-    .profile-wrap {
-        max-width: 600px;
+    .profile-container {
+        max-width: 1000px;
         margin: 0 auto;
     }
-    .profile-card {
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .profile-sidebar {
         background: white;
-        padding: 3rem;
         border-radius: 24px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
     }
-    .profile-header {
-        text-align: center;
-        margin-bottom: 2.5rem;
-    }
-    .profile-avatar-large {
-        width: 100px;
-        height: 100px;
+    .profile-avatar-xl {
+        width: 120px;
+        height: 120px;
         background: linear-gradient(135deg, var(--primary), var(--accent));
         border-radius: 50%;
         margin: 0 auto 1.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
+        font-size: 3rem;
         color: white;
         font-weight: 800;
-        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.25);
+    }
+    .profile-stats {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        font-size: 0.9rem;
+    }
+    .stat-item .label {
+        color: var(--text-muted);
+    }
+    .stat-item .value {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .profile-main {
+        background: white;
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+    }
+    .form-section {
+        margin-bottom: 3rem;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
     }
     .form-group {
         margin-bottom: 1.5rem;
@@ -42,8 +90,10 @@
         font-weight: 600;
         margin-bottom: 0.5rem;
         color: var(--text-main);
+        font-size: 0.9rem;
     }
-    .form-group input {
+    .form-group input,
+    .form-group textarea {
         width: 100%;
         padding: 0.85rem 1rem;
         border-radius: 12px;
@@ -51,65 +101,200 @@
         background: #f8fafc;
         outline: none;
         transition: all 0.2s;
+        font-family: inherit;
+        font-size: 0.95rem;
     }
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group textarea:focus {
         border-color: var(--primary);
         background: white;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    .security-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+    }
+    .security-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--success), #059669);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-wrap animate-fade-in">
-    <h1>Mon Profil</h1>
-    <p class="subtitle">Gérez vos informations personnelles et la sécurité de votre compte.</p>
+<div class="profile-container animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>Mon Profil</h1>
+            <p class="subtitle">Gérez vos informations personnelles et sécurité</p>
+        </div>
+    </div>
 
-    <div class="profile-card">
-        <div class="profile-header">
-            <div class="profile-avatar-large">
+    <div class="profile-grid">
+        <div class="profile-sidebar">
+            <div class="profile-avatar-xl">
                 {{ request.user.username|first|upper }}
             </div>
-            <h2 style="color: var(--text-main);">{{ request.user.username }}</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Membre depuis le {{ request.user.date_joined|date:"d F Y" }}</p>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-main); margin-bottom: 0.25rem;">{{ request.user.username }}</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">{{ request.user.email }}</p>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="label">Membre depuis</span>
+                    <span class="value">{{ request.user.date_joined|date:"M Y" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Dernière connexion</span>
+                    <span class="value">{{ request.user.last_login|date:"d M Y" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Statut</span>
+                    <span class="value" style="color: var(--success);">● Actif</span>
+                </div>
+            </div>
         </div>
 
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <ul class="errorlist">
-                    {% for error in field.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-            {% endfor %}
-            
-            <button type="submit" style="width: 100%; justify-content: center; margin-top: 1rem;">
-                Mettre à jour mon profil
-            </button>
-        </form>
+        <div class="profile-main">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h2 class="section-title">Informations personnelles</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{{ user_form.first_name.label }}</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="form-group">
+                            <label>{{ user_form.last_name.label }}</label>
+                            {{ user_form.last_name }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{{ user_form.username.label }}</label>
+                            {{ user_form.username }}
+                        </div>
+                        <div class="form-group">
+                            <label>{{ user_form.email.label }}</label>
+                            {{ user_form.email }}
+                        </div>
+                    </div>
+                </div>
 
-        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
-            <h4 style="color: var(--text-main); margin-bottom: 1rem;">Sécurité du compte</h4>
-            <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: var(--text-muted);">
-                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Cookies HTTPOnly activés
-                </li>
-                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Protection CSRF renforcée
-                </li>
-                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Session sécurisée
-                </li>
-            </ul>
+                <div class="form-section">
+                    <h2 class="section-title">Coordonnées</h2>
+                    
+                    <div class="form-group">
+                        <label>{{ profile_form.phone.label }}</label>
+                        {{ profile_form.phone }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>{{ profile_form.address.label }}</label>
+                        {{ profile_form.address }}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{{ profile_form.city.label }}</label>
+                            {{ profile_form.city }}
+                        </div>
+                        <div class="form-group">
+                            <label>{{ profile_form.postal_code.label }}</label>
+                            {{ profile_form.postal_code }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>{{ profile_form.country.label }}</label>
+                        {{ profile_form.country }}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Informations professionnelles</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{{ profile_form.company.label }}</label>
+                            {{ profile_form.company }}
+                        </div>
+                        <div class="form-group">
+                            <label>{{ profile_form.job_title.label }}</label>
+                            {{ profile_form.job_title }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>{{ profile_form.website.label }}</label>
+                        {{ profile_form.website }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>{{ profile_form.bio.label }}</label>
+                        {{ profile_form.bio }}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Sécurité du compte</h2>
+                    
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">Cookies HTTPOnly activés</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Protection contre les attaques XSS</div>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">Protection CSRF</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Sécurité renforcée des formulaires</div>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">Session sécurisée</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Expiration automatique à la fermeture</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" style="width: 100%; justify-content: center; padding: 1rem; margin-top: 1rem; font-size: 1rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Sauvegarder les modifications
+                </button>
+            </form>
         </div>
     </div>
 </div>

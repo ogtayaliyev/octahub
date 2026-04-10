@@ -159,11 +159,15 @@
         <div class="sidebar-footer">
             <div class="user-pill">
                 <div class="avatar">{{ request.user.username|first|upper }}</div>
-                <span>{{ request.user.username|truncatechars:20 }}</span>
+                <div style="flex: 1; overflow: hidden;">
+                    <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem;">{{ request.user.username }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ request.user.email|truncatechars:20 }}</div>
+                </div>
             </div>
             <form action="{% url 'logout' %}" method="post" style="width: 100%;">
                 {% csrf_token %}
-                <button type="submit" style="width: 100%; padding: 0.75rem; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 10px; font-weight: 600; font-size: 0.8rem;">
+                <button type="submit" style="width: 100%; padding: 0.75rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 0.85rem; justify-content: center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     Déconnexion
                 </button>
             </form>

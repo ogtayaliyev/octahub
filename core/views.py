@@ -15,12 +15,35 @@ import io
 from collections import Counter
 from django import forms
 from django.contrib.auth.models import User
+from .models import UserProfile
 
 # --- Forms ---
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['username', 'email', 'first_name', 'last_name']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-input'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-input'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-input'}),
+        }
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['phone', 'address', 'city', 'postal_code', 'country', 'bio', 'company', 'job_title', 'website']
+        widgets = {
+            'bio': forms.Textarea(attrs={'rows': 4, 'class': 'form-input'}),
+            'address': forms.TextInput(attrs={'class': 'form-input'}),
+            'city': forms.TextInput(attrs={'class': 'form-input'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-input'}),
+            'country': forms.TextInput(attrs={'class': 'form-input'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input'}),
+            'company': forms.TextInput(attrs={'class': 'form-input'}),
+            'job_title': forms.TextInput(attrs={'class': 'form-input'}),
+            'website': forms.URLInput(attrs={'class': 'form-input'}),
+        }
 
 # --- Utility Functions ---
 
@@ -298,11 +321,26 @@ def keywords_index(request): return render(request, 'core/keywords.html')
 
 @login_required
 def profile(request):
+    # Ensure user has a profile
+    if not hasattr(request.user, 'profile'):
+        UserProfile.objects.create(user=request.user)
+    
     if request.method == 'POST':
-        form = UserUpdateForm(request.POST, instance=request.user)
-        if form.is_valid(): form.save(); return redirect('profile')
-    else: form = UserUpdateForm(instance=request.user)
-    return render(request, 'core/profile.html', {'form': form})
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = UserProfileForm(request.POST, instance=request.user.profile)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            return redirect('profile')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = UserProfileForm(instance=request.user.profile)
+    
+    return render(request, 'core/profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })
 
 @login_required
 def scrape(request):
