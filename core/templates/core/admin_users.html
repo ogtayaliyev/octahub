@@ -1,0 +1,539 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Admin Utilisateurs | OctaHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-shell { max-width: 1520px; margin: 0 auto; }
+    .admin-alert {
+        margin: 1rem 0 1.5rem;
+        padding: 0.95rem 1.1rem;
+        border-radius: 14px;
+        background: rgba(16, 185, 129, 0.10);
+        border: 1px solid rgba(16, 185, 129, 0.22);
+        color: #065f46;
+        font-weight: 600;
+    }
+    .admin-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .admin-kpi {
+        background: white;
+        border-radius: 18px;
+        padding: 1.05rem 1.15rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .admin-kpi-label { color: var(--text-muted); font-size: 0.84rem; margin-bottom: 0.35rem; }
+    .admin-kpi-value { color: var(--text-main); font-size: 1.7rem; font-weight: 800; }
+
+    .admin-tabs {
+        display: inline-flex;
+        gap: 0.65rem;
+        background: rgba(99, 102, 241, 0.08);
+        border-radius: 16px;
+        padding: 0.35rem;
+        margin: 0 0 1.25rem;
+    }
+    .admin-tab-btn, .modal-tab-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .admin-tab-btn.active, .modal-tab-btn.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.12);
+    }
+    .admin-panel { display: none; }
+    .admin-panel.active { display: block; }
+
+    .admin-card {
+        background: white;
+        border-radius: 22px;
+        padding: 1.35rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .admin-card h2 { margin: 0 0 0.35rem; font-size: 1.15rem; color: var(--text-main); }
+    .admin-card p { margin: 0 0 1rem; color: var(--text-muted); font-size: 0.92rem; }
+    .admin-toolbar {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 260px; }
+    .search-wrap input {
+        width: 100%;
+        padding: 0.9rem 1rem 0.9rem 2.7rem;
+        border-radius: 14px;
+        border: 1px solid #dbe2ea;
+        background: #f8fafc;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+    .search-wrap svg {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+    .result-counter {
+        padding: 0.7rem 0.9rem;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: var(--text-main);
+        font-weight: 700;
+    }
+    .user-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    .user-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        transition: all 0.2s ease;
+    }
+    .user-row:hover { transform: translateY(-1px); border-color: rgba(99, 102, 241, 0.25); }
+    .user-main { display: flex; gap: 0.9rem; align-items: center; min-width: 0; }
+    .user-avatar {
+        width: 46px; height: 46px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-weight: 800; flex-shrink: 0;
+    }
+    .user-meta strong { display: block; color: var(--text-main); }
+    .user-meta span { display: block; color: var(--text-muted); font-size: 0.84rem; margin-top: 0.15rem; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.45rem; }
+    .mini-badge {
+        padding: 0.25rem 0.55rem; border-radius: 999px;
+        background: rgba(99, 102, 241, 0.1); color: var(--primary);
+        font-size: 0.72rem; font-weight: 700;
+    }
+    .mini-badge.gray { background: #e5e7eb; color: #475569; }
+    .mini-badge.green { background: rgba(16, 185, 129, 0.12); color: #047857; }
+    .user-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; justify-content: flex-end; }
+    .inline-form { margin: 0; }
+    .mini-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 0.7rem 0.95rem; border-radius: 12px; border: none;
+        background: #eef2ff; color: var(--primary); font-weight: 700;
+        text-decoration: none; cursor: pointer;
+    }
+    .mini-btn.danger { background: rgba(239, 68, 68, 0.10); color: #b91c1c; }
+    .empty-search {
+        display: none; text-align: center; padding: 2rem 1rem; color: var(--text-muted);
+        border: 1px dashed #dbe2ea; border-radius: 16px; margin-top: 0.75rem;
+    }
+
+    .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.95rem 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-weight: 700; color: var(--text-main); font-size: 0.88rem; }
+    .form-group input, .form-group textarea, .form-group select {
+        width: 100%; padding: 0.85rem 0.95rem; border-radius: 12px; border: 1px solid #dbe2ea;
+        background: #f8fafc; font-family: inherit; box-sizing: border-box;
+    }
+    .form-group textarea { min-height: 96px; resize: vertical; }
+    .toggle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.25rem; }
+    .toggle-card {
+        display: flex; align-items: center; gap: 0.55rem; padding: 0.85rem 0.95rem;
+        border: 1px solid #e5e7eb; border-radius: 12px; background: #f8fafc;
+        font-weight: 600; color: var(--text-main);
+    }
+    .toggle-card input { width: auto; margin: 0; }
+    .submit-btn {
+        margin-top: 1rem; width: 100%; border: none; border-radius: 14px;
+        padding: 0.95rem 1.1rem; background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white; font-weight: 800; cursor: pointer;
+    }
+    .form-errors { margin: 0 0 1rem; padding-left: 1rem; color: #b91c1c; font-size: 0.85rem; }
+
+    .admin-modal-overlay {
+        position: fixed; inset: 0; background: rgba(15, 23, 42, 0.58); backdrop-filter: blur(4px);
+        display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000;
+    }
+    .admin-modal-overlay.show { display: flex; }
+    .admin-modal {
+        width: min(980px, 100%); max-height: 92vh; overflow: auto; background: white;
+        border-radius: 24px; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18); padding: 1.25rem;
+    }
+    .modal-head {
+        display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;
+    }
+    .modal-title-wrap h2 { margin: 0 0 0.25rem; }
+    .modal-title-wrap p { margin: 0; color: var(--text-muted); }
+    .modal-close {
+        width: 40px; height: 40px; border: none; border-radius: 12px; background: #f1f5f9;
+        font-size: 1.25rem; cursor: pointer; color: var(--text-main);
+    }
+    .selected-summary {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 0 0 1rem;
+    }
+    .selected-summary div { padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e5e7eb; }
+    .selected-summary small { display: block; color: var(--text-muted); margin-bottom: 0.2rem; }
+    .selected-summary strong { color: var(--text-main); }
+    .modal-tabs {
+        display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 0 0 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid #eef2f7;
+    }
+    .modal-panel { display: none; }
+    .modal-panel.active { display: block; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+    .secondary-btn {
+        border: 1px solid #dbe2ea; background: white; color: var(--text-main);
+        padding: 0.9rem 1rem; border-radius: 12px; font-weight: 700; cursor: pointer;
+    }
+
+    @media (max-width: 980px) {
+        .admin-kpis, .admin-form-grid, .selected-summary, .toggle-grid { grid-template-columns: 1fr 1fr; }
+        .user-row { flex-direction: column; align-items: stretch; }
+        .user-actions { justify-content: stretch; }
+    }
+    @media (max-width: 720px) {
+        .admin-kpis, .admin-form-grid, .selected-summary, .toggle-grid { grid-template-columns: 1fr; }
+        .admin-tabs, .modal-tabs { width: 100%; }
+        .admin-tab-btn, .modal-tab-btn, .mini-btn { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-shell animate-fade-in">
+    <div class="tool-hero-card">
+        <div>
+            <div class="tool-hero-badge">Zone privée</div>
+            <h1>Administration des utilisateurs</h1>
+            <p class="subtitle">Vue pro avec recherche rapide, onglets dédiés et popup de gestion pour chaque utilisateur.</p>
+        </div>
+    </div>
+
+    {% if status_message %}
+    <div class="admin-alert">{{ status_message }}</div>
+    {% endif %}
+
+    <div class="admin-kpis">
+        <div class="admin-kpi"><div class="admin-kpi-label">Utilisateurs totaux</div><div class="admin-kpi-value">{{ total_users }}</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-label">Comptes actifs</div><div class="admin-kpi-value">{{ active_users }}</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-label">Staff</div><div class="admin-kpi-value">{{ staff_users }}</div></div>
+        <div class="admin-kpi"><div class="admin-kpi-label">Superadmins</div><div class="admin-kpi-value">{{ superusers }}</div></div>
+    </div>
+
+    <div class="admin-tabs">
+        <button type="button" class="admin-tab-btn active" data-admin-panel="users-panel">Liste des utilisateurs</button>
+        <button type="button" class="admin-tab-btn" data-admin-panel="create-panel">Ajouter un utilisateur</button>
+    </div>
+
+    <section id="users-panel" class="admin-panel active">
+        <div class="admin-card">
+            <div class="admin-toolbar">
+                <div class="search-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                    <input type="text" id="userSearchInput" placeholder="Rechercher un utilisateur par nom, email ou rôle...">
+                </div>
+                <div class="result-counter"><span id="visibleUserCount">{{ total_users }}</span> utilisateur(s)</div>
+            </div>
+
+            <div class="user-list" id="userList">
+                {% for item in users %}
+                <div class="user-row" data-user-row data-search="{{ item.username|lower }} {{ item.email|default:''|lower }} {{ item.first_name|default:''|lower }} {{ item.last_name|default:''|lower }} {% if item.is_superuser %}superadmin{% endif %} {% if item.is_staff %}staff{% endif %}">
+                    <div class="user-main">
+                        <div class="user-avatar">{{ item.username|first|upper }}</div>
+                        <div class="user-meta">
+                            <strong>{{ item.first_name|default:item.username }} {{ item.last_name }}</strong>
+                            <span>@{{ item.username }} • {{ item.email|default:'Aucun email' }}</span>
+                            <div class="badge-row">
+                                {% if item.is_superuser %}<span class="mini-badge">Superadmin</span>{% endif %}
+                                {% if item.is_staff %}<span class="mini-badge gray">Staff</span>{% endif %}
+                                {% if item.is_active %}<span class="mini-badge green">Actif</span>{% else %}<span class="mini-badge gray">Inactif</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button
+                            type="button"
+                            class="mini-btn open-user-modal"
+                            data-user-id="{{ item.id }}"
+                            data-username="{{ item.username|default:'' }}"
+                            data-email="{{ item.email|default:'' }}"
+                            data-first-name="{{ item.first_name|default:'' }}"
+                            data-last-name="{{ item.last_name|default:'' }}"
+                            data-is-active="{{ item.is_active }}"
+                            data-is-staff="{{ item.is_staff }}"
+                            data-is-superuser="{{ item.is_superuser }}"
+                            data-phone="{{ item.profile.phone|default:'' }}"
+                            data-address="{{ item.profile.address|default:'' }}"
+                            data-city="{{ item.profile.city|default:'' }}"
+                            data-postal-code="{{ item.profile.postal_code|default:'' }}"
+                            data-country="{{ item.profile.country|default:'' }}"
+                            data-company="{{ item.profile.company|default:'' }}"
+                            data-job-title="{{ item.profile.job_title|default:'' }}"
+                            data-website="{{ item.profile.website|default:'' }}"
+                            data-bio="{{ item.profile.bio|default:'' }}"
+                            data-joined="{{ item.date_joined|date:'d/m/Y' }}"
+                            data-last-login="{% if item.last_login %}{{ item.last_login|date:'d/m/Y H:i' }}{% else %}Jamais{% endif %}"
+                        >Gérer</button>
+
+                        {% if item.id != request.user.id %}
+                        <form method="post" class="inline-form" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="user_id" value="{{ item.id }}">
+                            <button type="submit" class="mini-btn danger">Supprimer</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="empty-search" id="emptySearchState">Aucun utilisateur ne correspond à votre recherche.</div>
+        </div>
+    </section>
+
+    <section id="create-panel" class="admin-panel">
+        <div class="admin-card">
+            <h2>Ajouter un utilisateur</h2>
+            <p>Créez un nouveau compte avec ses accès et toutes ses informations de profil.</p>
+
+            {% if create_form.non_field_errors %}
+            <ul class="form-errors">{{ create_form.non_field_errors }}</ul>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+
+                <div class="admin-form-grid">
+                    <div class="form-group"><label for="{{ create_form.username.id_for_label }}">Nom d'utilisateur</label>{{ create_form.username }}</div>
+                    <div class="form-group"><label for="{{ create_form.email.id_for_label }}">Email</label>{{ create_form.email }}</div>
+                    <div class="form-group"><label for="{{ create_form.first_name.id_for_label }}">Prénom</label>{{ create_form.first_name }}</div>
+                    <div class="form-group"><label for="{{ create_form.last_name.id_for_label }}">Nom</label>{{ create_form.last_name }}</div>
+                    <div class="form-group full"><label for="{{ create_form.password1.id_for_label }}">Mot de passe</label>{{ create_form.password1 }}</div>
+                    <div class="form-group full"><label for="{{ create_form.password2.id_for_label }}">Confirmation du mot de passe</label>{{ create_form.password2 }}</div>
+                    <div class="form-group"><label for="{{ create_profile_form.phone.id_for_label }}">Téléphone</label>{{ create_profile_form.phone }}</div>
+                    <div class="form-group"><label for="{{ create_profile_form.country.id_for_label }}">Pays</label>{{ create_profile_form.country }}</div>
+                    <div class="form-group full"><label for="{{ create_profile_form.address.id_for_label }}">Adresse</label>{{ create_profile_form.address }}</div>
+                    <div class="form-group"><label for="{{ create_profile_form.city.id_for_label }}">Ville</label>{{ create_profile_form.city }}</div>
+                    <div class="form-group"><label for="{{ create_profile_form.postal_code.id_for_label }}">Code postal</label>{{ create_profile_form.postal_code }}</div>
+                    <div class="form-group"><label for="{{ create_profile_form.company.id_for_label }}">Société</label>{{ create_profile_form.company }}</div>
+                    <div class="form-group"><label for="{{ create_profile_form.job_title.id_for_label }}">Poste</label>{{ create_profile_form.job_title }}</div>
+                    <div class="form-group full"><label for="{{ create_profile_form.website.id_for_label }}">Site web</label>{{ create_profile_form.website }}</div>
+                    <div class="form-group full"><label for="{{ create_profile_form.bio.id_for_label }}">Bio / Notes</label>{{ create_profile_form.bio }}</div>
+                </div>
+
+                <div class="toggle-grid">
+                    <label class="toggle-card">{{ create_form.is_active }} Compte actif</label>
+                    <label class="toggle-card">{{ create_form.is_staff }} Accès staff</label>
+                    <label class="toggle-card">{{ create_form.is_superuser }} Accès superadmin</label>
+                </div>
+
+                <button type="submit" class="submit-btn">Créer le compte</button>
+            </form>
+        </div>
+    </section>
+</div>
+
+<div class="admin-modal-overlay" id="userModalOverlay">
+    <div class="admin-modal">
+        <div class="modal-head">
+            <div class="modal-title-wrap">
+                <h2 id="modalUserTitle">Gestion utilisateur</h2>
+                <p>Les informations sont organisées par onglets pour un accès plus propre.</p>
+            </div>
+            <button type="button" class="modal-close" id="closeUserModal">×</button>
+        </div>
+
+        <div class="selected-summary">
+            <div><small>Membre depuis</small><strong id="summaryJoined">—</strong></div>
+            <div><small>Dernière connexion</small><strong id="summaryLastLogin">—</strong></div>
+            <div><small>Société</small><strong id="summaryCompany">—</strong></div>
+        </div>
+
+        {% if edit_form.non_field_errors %}
+        <ul class="form-errors">{{ edit_form.non_field_errors }}</ul>
+        {% endif %}
+
+        <div class="modal-tabs">
+            <button type="button" class="modal-tab-btn active" data-modal-panel="modal-account">Compte</button>
+            <button type="button" class="modal-tab-btn" data-modal-panel="modal-contact">Coordonnées</button>
+            <button type="button" class="modal-tab-btn" data-modal-panel="modal-pro">Professionnel</button>
+            <button type="button" class="modal-tab-btn" data-modal-panel="modal-security">Sécurité</button>
+        </div>
+
+        <form method="post" id="userEditForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" name="user_id" id="modal-user-id" value="{{ selected_user.id }}">
+
+            <div id="modal-account" class="modal-panel active">
+                <div class="admin-form-grid">
+                    <div class="form-group"><label for="modal-username">Nom d'utilisateur</label><input id="modal-username" name="username" type="text" value="{{ edit_form.username.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-email">Email</label><input id="modal-email" name="email" type="email" value="{{ edit_form.email.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-first-name">Prénom</label><input id="modal-first-name" name="first_name" type="text" value="{{ edit_form.first_name.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-last-name">Nom</label><input id="modal-last-name" name="last_name" type="text" value="{{ edit_form.last_name.value|default:'' }}"></div>
+                </div>
+            </div>
+
+            <div id="modal-contact" class="modal-panel">
+                <div class="admin-form-grid">
+                    <div class="form-group"><label for="modal-phone">Téléphone</label><input id="modal-phone" name="edit-phone" type="text" value="{{ edit_profile_form.phone.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-country">Pays</label><input id="modal-country" name="edit-country" type="text" value="{{ edit_profile_form.country.value|default:'' }}"></div>
+                    <div class="form-group full"><label for="modal-address">Adresse</label><input id="modal-address" name="edit-address" type="text" value="{{ edit_profile_form.address.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-city">Ville</label><input id="modal-city" name="edit-city" type="text" value="{{ edit_profile_form.city.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-postal-code">Code postal</label><input id="modal-postal-code" name="edit-postal_code" type="text" value="{{ edit_profile_form.postal_code.value|default:'' }}"></div>
+                </div>
+            </div>
+
+            <div id="modal-pro" class="modal-panel">
+                <div class="admin-form-grid">
+                    <div class="form-group"><label for="modal-company">Société</label><input id="modal-company" name="edit-company" type="text" value="{{ edit_profile_form.company.value|default:'' }}"></div>
+                    <div class="form-group"><label for="modal-job-title">Poste</label><input id="modal-job-title" name="edit-job_title" type="text" value="{{ edit_profile_form.job_title.value|default:'' }}"></div>
+                    <div class="form-group full"><label for="modal-website">Site web</label><input id="modal-website" name="edit-website" type="url" value="{{ edit_profile_form.website.value|default:'' }}"></div>
+                    <div class="form-group full"><label for="modal-bio">Bio / Notes</label><textarea id="modal-bio" name="edit-bio">{{ edit_profile_form.bio.value|default:'' }}</textarea></div>
+                </div>
+            </div>
+
+            <div id="modal-security" class="modal-panel">
+                <div class="admin-form-grid">
+                    <div class="form-group full"><label for="modal-new-password">Nouveau mot de passe</label><input id="modal-new-password" name="new_password" type="password" placeholder="Laisser vide pour ne pas changer"></div>
+                </div>
+                <div class="toggle-grid">
+                    <label class="toggle-card"><input id="modal-is-active" name="is_active" type="checkbox"> Compte actif</label>
+                    <label class="toggle-card"><input id="modal-is-staff" name="is_staff" type="checkbox"> Accès staff</label>
+                    <label class="toggle-card"><input id="modal-is-superuser" name="is_superuser" type="checkbox"> Accès superadmin</label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancelUserModal">Annuler</button>
+                <button type="submit" class="submit-btn" style="width:auto; margin-top:0;">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const adminTabButtons = document.querySelectorAll('[data-admin-panel]');
+        const adminPanels = document.querySelectorAll('.admin-panel');
+        adminTabButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                adminTabButtons.forEach((btn) => btn.classList.remove('active'));
+                adminPanels.forEach((panel) => panel.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(button.dataset.adminPanel).classList.add('active');
+            });
+        });
+
+        const searchInput = document.getElementById('userSearchInput');
+        const userRows = Array.from(document.querySelectorAll('[data-user-row]'));
+        const emptyState = document.getElementById('emptySearchState');
+        const visibleUserCount = document.getElementById('visibleUserCount');
+
+        function filterUsers() {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            let visible = 0;
+            userRows.forEach((row) => {
+                const haystack = row.dataset.search || '';
+                const match = !query || haystack.includes(query);
+                row.style.display = match ? '' : 'none';
+                if (match) visible += 1;
+            });
+            visibleUserCount.textContent = visible;
+            emptyState.style.display = visible === 0 ? 'block' : 'none';
+        }
+        if (searchInput) {
+            searchInput.addEventListener('input', filterUsers);
+        }
+
+        const modal = document.getElementById('userModalOverlay');
+        const closeButtons = [document.getElementById('closeUserModal'), document.getElementById('cancelUserModal')];
+        const modalButtons = document.querySelectorAll('.open-user-modal');
+        const modalTabButtons = document.querySelectorAll('[data-modal-panel]');
+        const modalPanels = document.querySelectorAll('.modal-panel');
+
+        function normalizeBool(value) {
+            return String(value).toLowerCase() === 'true';
+        }
+
+        function setModalTab(targetId) {
+            modalTabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.modalPanel === targetId));
+            modalPanels.forEach((panel) => panel.classList.toggle('active', panel.id === targetId));
+        }
+
+        function openModalFromButton(button) {
+            document.getElementById('modal-user-id').value = button.dataset.userId || '';
+            document.getElementById('modal-username').value = button.dataset.username || '';
+            document.getElementById('modal-email').value = button.dataset.email || '';
+            document.getElementById('modal-first-name').value = button.dataset.firstName || '';
+            document.getElementById('modal-last-name').value = button.dataset.lastName || '';
+            document.getElementById('modal-phone').value = button.dataset.phone || '';
+            document.getElementById('modal-address').value = button.dataset.address || '';
+            document.getElementById('modal-city').value = button.dataset.city || '';
+            document.getElementById('modal-postal-code').value = button.dataset.postalCode || '';
+            document.getElementById('modal-country').value = button.dataset.country || '';
+            document.getElementById('modal-company').value = button.dataset.company || '';
+            document.getElementById('modal-job-title').value = button.dataset.jobTitle || '';
+            document.getElementById('modal-website').value = button.dataset.website || '';
+            document.getElementById('modal-bio').value = button.dataset.bio || '';
+            document.getElementById('modal-new-password').value = '';
+            document.getElementById('modal-is-active').checked = normalizeBool(button.dataset.isActive);
+            document.getElementById('modal-is-staff').checked = normalizeBool(button.dataset.isStaff);
+            document.getElementById('modal-is-superuser').checked = normalizeBool(button.dataset.isSuperuser);
+
+            document.getElementById('modalUserTitle').textContent = 'Gérer ' + (button.dataset.username || 'utilisateur');
+            document.getElementById('summaryJoined').textContent = button.dataset.joined || '—';
+            document.getElementById('summaryLastLogin').textContent = button.dataset.lastLogin || '—';
+            document.getElementById('summaryCompany').textContent = button.dataset.company || '—';
+
+            setModalTab('modal-account');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        modalButtons.forEach((button) => {
+            button.addEventListener('click', () => openModalFromButton(button));
+        });
+
+        closeButtons.forEach((button) => {
+            if (button) button.addEventListener('click', closeModal);
+        });
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) closeModal();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        modalTabButtons.forEach((button) => {
+            button.addEventListener('click', () => setModalTab(button.dataset.modalPanel));
+        });
+
+        {% if edit_form.errors or edit_profile_form.errors %}
+        const firstUserButton = document.querySelector('.open-user-modal[data-user-id="{{ selected_user.id }}"]');
+        if (firstUserButton) openModalFromButton(firstUserButton);
+        {% endif %}
+    })();
+</script>
+{% endblock %}

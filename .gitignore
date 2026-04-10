@@ -7,6 +7,8 @@ Lib/
 Scripts/
 pyvenv.cfg
 .env
+.env.prod
+.env.production
 
 # Django
 db.sqlite3

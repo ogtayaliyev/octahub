@@ -18,6 +18,7 @@ urlpatterns = [
     path('forms-scrape/', views.forms_scrape, name='forms_scrape'),
     path('keywords/', views.keywords_index, name='keywords_index'),
     path('profile/', views.profile, name='profile'),
+    path('admin-users/', views.admin_users, name='admin_users'),
     path('scrape/', views.scrape, name='scrape'),
     path('seo-scrape/', views.seo_scrape, name='seo_scrape'),
     path('crawler-scrape/', views.crawler_scrape, name='crawler_scrape'),

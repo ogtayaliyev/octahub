@@ -14,18 +14,22 @@ def run_command(command):
     os.system(f"python manage.py {command}")
 
 def create_superuser():
-    """Create superuser if it doesn't exist."""
+    """Create superuser if env variables are provided and the user doesn't exist."""
+    username = os.environ.get('DJANGO_SUPERUSER_USERNAME')
+    email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
+    password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
+
+    if not all([username, email, password]):
+        print(">>> Skipping superuser creation (env vars not provided).")
+        return
+
     print(">>> Creating superuser...")
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'octascraper.settings')
     django.setup()
-    
+
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
-    username = 'admin'
-    email = 'ogtay.a@outlook.com'
-    password = 'Ogtay2003.'
-    
+
     if not User.objects.filter(username=username).exists():
         User.objects.create_superuser(username, email, password)
         print(f'✓ Superuser "{username}" created successfully.')
@@ -56,9 +60,17 @@ def main():
     
     # Start server
     print("\n" + "=" * 60)
-    print("Starting Django development server...")
-    print("=" * 60 + "\n")
-    os.system("python manage.py runserver 0.0.0.0:8000")
+    debug_mode = os.environ.get('DEBUG', 'False').lower() in ('1', 'true', 'yes', 'on')
+    if debug_mode:
+        print("Starting Django development server...")
+        print("=" * 60 + "\n")
+        os.system("python manage.py runserver 0.0.0.0:8000")
+    else:
+        workers = os.environ.get('GUNICORN_WORKERS', '3')
+        timeout = os.environ.get('GUNICORN_TIMEOUT', '120')
+        print(f"Starting Gunicorn ({workers} workers, timeout={timeout}s)...")
+        print("=" * 60 + "\n")
+        os.system(f"gunicorn octascraper.wsgi:application --bind 0.0.0.0:8000 --workers {workers} --timeout {timeout} --access-logfile - --error-logfile -")
 
 if __name__ == "__main__":
     main()

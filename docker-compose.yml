@@ -23,6 +23,10 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=octahub-local-dev-secret-key-change-this-in-production-2026
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
       - DB_NAME=octahub
       - DB_USER=root
       - DB_PASSWORD=octahub2003
