@@ -1,0 +1,343 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Idées & Contact | OctaHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feedback-page {
+        max-width: 1280px;
+        margin: 0 auto;
+    }
+
+    .feedback-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 58%, #0ea5e9 145%);
+        color: white;
+        border-radius: 28px;
+        padding: 2.25rem;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    }
+
+    .feedback-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.14);
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .feedback-hero-grid {
+        display: grid;
+        grid-template-columns: 1.7fr 1fr;
+        gap: 1.25rem;
+        align-items: center;
+    }
+
+    .feedback-hero h1 {
+        color: white;
+        margin-bottom: 0.7rem;
+    }
+
+    .feedback-hero .subtitle {
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 1rem;
+        max-width: 780px;
+    }
+
+    .feedback-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .feedback-pill {
+        padding: 0.6rem 0.8rem;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        font-size: 0.84rem;
+        font-weight: 600;
+    }
+
+    .feedback-layout {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 1.5rem;
+    }
+
+    .feedback-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: var(--card-shadow);
+        padding: 1.6rem;
+    }
+
+    .feedback-card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.35rem;
+        color: var(--text-main);
+    }
+
+    .feedback-card p.lead {
+        color: var(--text-muted);
+        margin-bottom: 1.2rem;
+    }
+
+    .feedback-form {
+        display: grid;
+        gap: 0.95rem;
+    }
+
+    .feedback-form label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #334155;
+        margin-bottom: 0.45rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .feedback-form input,
+    .feedback-form select,
+    .feedback-form textarea {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid #dbe3ef;
+        background: #fff;
+        padding: 0.9rem 1rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: var(--text-main);
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .feedback-form input:focus,
+    .feedback-form select:focus,
+    .feedback-form textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.10);
+    }
+
+    .feedback-form textarea {
+        min-height: 160px;
+        resize: vertical;
+    }
+
+    .feedback-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .mail-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.9rem 1.2rem;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.92rem;
+        transition: all 0.2s ease;
+    }
+
+    .mail-btn.primary {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        box-shadow: 0 14px 30px rgba(99, 102, 241, 0.22);
+    }
+
+    .mail-btn.secondary {
+        background: #f8fafc;
+        color: var(--text-main);
+        border: 1px solid #dbe3ef;
+    }
+
+    .mail-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .info-list {
+        display: grid;
+        gap: 0.9rem;
+        margin-top: 1rem;
+    }
+
+    .info-item {
+        background: #f8fafc;
+        border: 1px solid #e5edf7;
+        border-radius: 18px;
+        padding: 1rem;
+    }
+
+    .info-item strong {
+        display: block;
+        color: var(--text-main);
+        margin-bottom: 0.3rem;
+    }
+
+    .info-item span,
+    .info-item a {
+        color: var(--text-muted);
+        text-decoration: none;
+    }
+
+    .mini-note {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 0.75rem;
+    }
+
+    @media (max-width: 980px) {
+        .feedback-hero-grid,
+        .feedback-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-fade-in feedback-page">
+    <section class="feedback-hero">
+        <div class="feedback-badge">💡 Partagez vos idées</div>
+        <div class="feedback-hero-grid">
+            <div>
+                <h1>Idées, corrections & suggestions</h1>
+                <p class="subtitle">
+                    Si vous avez une idée de fonctionnalité, une amélioration UX ou un bug à corriger,
+                    vous pouvez nous envoyer un message directement par email.
+                </p>
+                <div class="feedback-pills">
+                    <div class="feedback-pill">Nouvelles fonctionnalités</div>
+                    <div class="feedback-pill">Corrections de bugs</div>
+                    <div class="feedback-pill">Améliorations design</div>
+                </div>
+            </div>
+            <div class="feedback-card" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); box-shadow: none; color: white;">
+                <h2 style="color: white;">Réponse simple</h2>
+                <p class="lead" style="color: rgba(255,255,255,0.78); margin-bottom: 0.75rem;">
+                    Décrivez votre besoin et ouvrez votre client mail en un clic.
+                </p>
+                <div class="mini-note" style="color: rgba(255,255,255,0.78); margin-top: 0;">
+                    Email de contact : <strong style="color: white;">{{ contact_email }}</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="feedback-layout">
+        <section class="feedback-card">
+            <h2>Envoyer une idée</h2>
+            <p class="lead">Préparez votre message puis cliquez sur <strong>Envoyer par email</strong>.</p>
+
+            <form class="feedback-form" id="feedback-form">
+                <div>
+                    <label for="feedback-name">Votre nom</label>
+                    <input id="feedback-name" type="text" placeholder="Ex: Ogtay">
+                </div>
+
+                <div>
+                    <label for="feedback-type">Type de demande</label>
+                    <select id="feedback-type">
+                        <option value="Idée d'amélioration">Idée d'amélioration</option>
+                        <option value="Correction de bug">Correction de bug</option>
+                        <option value="Nouveau module">Nouveau module</option>
+                        <option value="Retour design / UX">Retour design / UX</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="feedback-message">Votre message</label>
+                    <textarea id="feedback-message" placeholder="Décrivez ce que vous voulez ajouter, modifier ou corriger..."></textarea>
+                </div>
+
+                <div class="feedback-actions">
+                    <a id="mail-link" class="mail-btn primary" href="#">
+                        ✉️ Envoyer par email
+                    </a>
+                    <button type="button" id="copy-email" class="mail-btn secondary">Copier l'email</button>
+                </div>
+            </form>
+        </section>
+
+        <aside class="feedback-card">
+            <h2>Contact direct</h2>
+            <p class="lead">Utilisez cette adresse si vous voulez proposer une amélioration ou signaler un problème.</p>
+
+            <div class="info-list">
+                <div class="info-item">
+                    <strong>Email</strong>
+                    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                </div>
+                <div class="info-item">
+                    <strong>Exemples utiles</strong>
+                    <span>• Ajouter un outil<br>• Corriger un bug<br>• Améliorer le design<br>• Suggérer une fonctionnalité</span>
+                </div>
+                <div class="info-item">
+                    <strong>Conseil</strong>
+                    <span>Précisez la page concernée, le problème rencontré et le résultat attendu.</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const email = '{{ contact_email|escapejs }}';
+
+    const mailLink = document.getElementById('mail-link');
+    const copyBtn = document.getElementById('copy-email');
+
+    function buildMailto() {
+        const name = document.getElementById('feedback-name').value.trim();
+        const type = document.getElementById('feedback-type').value;
+        const message = document.getElementById('feedback-message').value.trim();
+
+        const subject = `[OctaHub] ${type}`;
+        const body = [
+            name ? `Nom: ${name}` : '',
+            `Type: ${type}`,
+            '',
+            'Message:',
+            message || 'Bonjour, je souhaite partager une idée / correction.'
+        ].filter(Boolean).join('\n');
+
+        mailLink.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    ['feedback-name', 'feedback-type', 'feedback-message'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', buildMailto);
+    });
+
+    buildMailto();
+
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(email);
+            copyBtn.textContent = 'Email copié';
+            setTimeout(() => {
+                copyBtn.textContent = 'Copier l\'email';
+            }, 1500);
+        } catch (e) {
+            copyBtn.textContent = email;
+        }
+    });
+</script>
+{% endblock %}

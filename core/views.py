@@ -490,6 +490,11 @@ def terms(request): return render(request, 'core/terms.html')
 
 def privacy(request): return render(request, 'core/privacy.html')
 
+def feedback_index(request):
+    return render(request, 'core/feedback.html', {
+        'contact_email': os.environ.get('CONTACT_EMAIL_TO', 'legal@octahub.com')
+    })
+
 @login_required
 def seo_index(request): return render(request, 'core/seo.html')
 
@@ -914,7 +919,6 @@ def vmap_scrape(request):
         return JsonResponse({'nodes': nodes})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-@login_required
 def get_google_suggestions(query, country_code='fr'):
     """Fetch Google Suggest autocomplete suggestions"""
     suggestions = []

@@ -14,14 +14,14 @@
     }
     .summary-title {
         font-size: 1.8rem;
-        color: white;
+        color: var(--text-main);
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
     .summary-conclusion {
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--card-bg);
         padding: 1.5rem;
         border-radius: 12px;
         margin-bottom: 2rem;
@@ -35,10 +35,12 @@
         margin-bottom: 2rem;
     }
     .stat-box {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 1rem;
-        border-radius: 10px;
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 16px;
         text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.05);
     }
     .stat-number {
         font-size: 2rem;
@@ -76,17 +78,18 @@
     }
     .pages-title {
         font-size: 1.5rem;
-        color: white;
+        color: var(--text-main);
         margin: 3rem 0 1.5rem 0;
         padding-bottom: 0.75rem;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
     }
     .seo-card {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--card-bg);
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: var(--card-shadow);
     }
     .seo-header {
         display: flex;
@@ -131,35 +134,82 @@
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
-    <h1>OctaSEO</h1>
-    <p class="subtitle">Analysez la structure SEO de n'importe quel site web.</p>
-    
-    <form id="seo-form">
-        {% csrf_token %}
-        <div class="input-group">
-            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
-            <button type="submit" id="submit-btn">
-                <span>Analyser</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </button>
+<div class="container animate-fade-in tool-page">
+    <section class="tool-hero-card">
+        <div class="tool-badge">📈 Audit SEO intelligent</div>
+        <div class="tool-hero-grid">
+            <div>
+                <h1>OctaSEO</h1>
+                <p class="subtitle">Analysez les balises, la structure et le maillage de votre site avec une interface moderne alignée à OctaHub.</p>
+                <div class="tool-feature-list">
+                    <div class="tool-feature-item">Meta titres & descriptions</div>
+                    <div class="tool-feature-item">Audit multi-pages</div>
+                    <div class="tool-feature-item">Synthèse automatique</div>
+                </div>
+            </div>
+            <div class="tool-hero-stats">
+                <div class="hero-stat"><strong>On-page</strong><span>Détection rapide des points SEO clés.</span></div>
+                <div class="hero-stat"><strong>Sitemap</strong><span>Exploration plus large en mode profond.</span></div>
+                <div class="hero-stat"><strong>Insights</strong><span>Résumé global prêt à exploiter.</span></div>
+            </div>
         </div>
-        <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
-            <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
-            <label for="deep-scan">Analyse multi-pages (jusqu'à 30 pages avec sitemap)</label>
-        </div>
-    </form>
+    </section>
 
-    <div class="progress-container" id="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <p id="status-text">Analyse SEO en cours...</p>
-    </div>
+    <div class="tool-layout">
+        <aside class="tool-panel">
+            <div class="tool-panel-title">Paramètres d'analyse</div>
+            <p class="tool-panel-subtitle">Lancez un audit simple ou multi-pages selon votre besoin.</p>
 
-    <div id="results-container" style="display: none; margin-top: 3rem;">
-        <h2 id="result-count" style="margin-bottom: 2rem;">Rapport SEO</h2>
-        <div id="seo-results-list"></div>
+            <form id="seo-form">
+                {% csrf_token %}
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                    <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+                </div>
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                    <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
+                    <label for="deep-scan">Analyse multi-pages (jusqu'à 30 pages avec sitemap)</label>
+                </div>
+                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
+                    <span>Analyser le site</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </button>
+            </form>
+
+            <div class="tool-info-box" style="margin-top: 1rem;">
+                <strong style="display:block; margin-bottom:0.4rem; color: var(--text-main);">Ce que vous allez voir</strong>
+                <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.7;">
+                    • Résumé global du SEO<br>
+                    • Balises détectées par page<br>
+                    • Liens internes / externes<br>
+                    • Opportunités d'amélioration
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container" style="margin: 1rem 0 0 0;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="status-text">Analyse SEO en cours...</p>
+            </div>
+        </aside>
+
+        <section class="tool-results-card">
+            <div id="seo-empty" class="tool-empty">
+                <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Rapport SEO prêt à s'afficher</h3>
+                <p>Saisissez une URL et lancez l'analyse pour afficher la synthèse et les pages détectées.</p>
+            </div>
+
+            <div id="results-container" style="display: none; margin-top: 0;">
+                <div class="tool-toolbar">
+                    <div>
+                        <h3 id="result-count">Rapport SEO</h3>
+                        <p>Vue d'ensemble des performances SEO du site analysé.</p>
+                    </div>
+                </div>
+                <div id="seo-results-list" class="tool-scroll"></div>
+            </div>
+        </section>
     </div>
 </div>
 {% endblock %}
@@ -248,7 +298,7 @@
                         // Top detected keywords
                         if (data.summary.top_keywords && data.summary.top_keywords.length > 0) {
                             summaryHTML += `
-                                <h3 style="color: white; margin-top: 2rem; margin-bottom: 0.75rem;">🔑 Mots-clés les plus utilisés</h3>
+                                <h3 style="color: var(--text-main); margin-top: 2rem; margin-bottom: 0.75rem;">🔑 Mots-clés les plus utilisés</h3>
                                 <div class="keyword-cloud">
                                     ${data.summary.top_keywords.map(kw => `
                                         <div class="keyword-item">
@@ -263,7 +313,7 @@
                         // Hashtags
                         if (data.summary.top_hashtags && data.summary.top_hashtags.length > 0) {
                             summaryHTML += `
-                                <h3 style="color: white; margin-top: 2rem; margin-bottom: 0.75rem;">#️⃣ Hashtags détectés</h3>
+                                <h3 style="color: var(--text-main); margin-top: 2rem; margin-bottom: 0.75rem;">#️⃣ Hashtags détectés</h3>
                                 <div class="keyword-cloud">
                                     ${data.summary.top_hashtags.map(tag => `
                                         <div class="keyword-item" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.3);">
@@ -278,7 +328,7 @@
                         // Meta keywords
                         if (data.summary.all_meta_keywords && data.summary.all_meta_keywords.length > 0) {
                             summaryHTML += `
-                                <h3 style="color: white; margin-top: 2rem; margin-bottom: 0.75rem;">📌 Mots-clés meta (balises)</h3>
+                                <h3 style="color: var(--text-main); margin-top: 2rem; margin-bottom: 0.75rem;">📌 Mots-clés meta (balises)</h3>
                                 <div class="tag-list">
                                     ${data.summary.all_meta_keywords.map(k => `<span class="tag" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3);">${k}</span>`).join('')}
                                 </div>
@@ -311,7 +361,7 @@
                         
                         card.innerHTML = `
                             <div class="seo-header">
-                                <h3 style="color: white;">${res.title}</h3>
+                                <h3 style="color: var(--text-main);">${res.title}</h3>
                                 <span class="seo-url">${res.url}</span>
                             </div>
                             <div class="seo-meta">

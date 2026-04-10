@@ -8,6 +8,7 @@ urlpatterns = [
     path('info/', views.info, name='info'),
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
+    path('feedback/', views.feedback_index, name='feedback_index'),
     path('seo/', views.seo_index, name='seo_index'),
     path('crawler/', views.crawler_index, name='crawler_index'),
     path('vmap/', views.vmap_index, name='vmap_index'),

@@ -5,416 +5,528 @@
 
 {% block extra_css %}
 <style>
-    * { box-sizing: border-box; }
-
-    :root {
-        --gradient-primary: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-        --gradient-light: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
-        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-    }
-
-    .kw-hero {
-        text-align: center;
-        margin-bottom: 3.5rem;
-        padding: 2.5rem 0;
-    }
-    
-    .kw-hero h1 {
-        font-size: 3.5rem;
-        font-weight: 900;
-        background: var(--gradient-primary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 1rem;
-        letter-spacing: -1.5px;
-        line-height: 1.1;
-    }
-
-    .kw-hero .subtitle {
-        color: #475569;
-        font-size: 1.2rem;
-        font-weight: 500;
-        max-width: 700px;
+    .kw-page {
+        max-width: 1280px;
         margin: 0 auto;
-        line-height: 1.7;
     }
 
-    .kw-form-container {
+    .kw-hero-card {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0ea5e9 140%);
+        border-radius: 28px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kw-hero-card::after {
+        content: '';
+        position: absolute;
+        inset: auto -60px -60px auto;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 65%);
+        pointer-events: none;
+    }
+
+    .kw-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.18);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        margin-bottom: 1rem;
+    }
+
+    .kw-hero-grid {
         display: grid;
-        grid-template-columns: 420px 1fr;
-        gap: 2.5rem;
-        margin-top: 2rem;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 1.5rem;
+        align-items: center;
     }
 
-    .kw-card {
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 2.5rem;
-        border: 2px solid #f1f5f9;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
+    .kw-hero-card h1 {
+        font-size: 3rem;
+        line-height: 1.05;
+        margin-bottom: 0.75rem;
+        color: white;
     }
 
-    .kw-card:hover {
-        box-shadow: var(--shadow-lg);
-        border-color: #e2e8f0;
+    .kw-hero-card .subtitle {
+        color: rgba(255,255,255,0.78);
+        margin-bottom: 1.2rem;
+        max-width: 760px;
+    }
+
+    .kw-feature-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .kw-feature-item {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 14px;
+        padding: 0.7rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .kw-hero-stats {
+        display: grid;
+        gap: 0.8rem;
+    }
+
+    .hero-stat {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+    }
+
+    .hero-stat strong {
+        display: block;
+        font-size: 1.3rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .hero-stat span {
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.75);
+    }
+
+    .kw-layout {
+        display: grid;
+        grid-template-columns: 390px 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .kw-panel,
+    .kw-results-panel {
+        background: #fff;
+        border-radius: 24px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: var(--card-shadow);
+    }
+
+    .kw-panel {
+        padding: 1.4rem;
+        position: sticky;
+        top: 1.5rem;
+    }
+
+    .panel-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+    }
+
+    .panel-subtitle {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        margin-bottom: 1.25rem;
+    }
+
+    .panel-block {
+        padding: 1rem;
+        border-radius: 18px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.05);
+        margin-bottom: 1rem;
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     .form-group label {
         display: block;
-        font-weight: 700;
-        margin-bottom: 0.7rem;
-        color: #1e293b;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #334155;
+        margin-bottom: 0.55rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.05em;
     }
 
-    .form-group input, .form-group select, .form-group textarea {
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
         width: 100%;
-        padding: 0.95rem 1.1rem;
-        border-radius: 12px;
-        border: 2px solid #e2e8f0;
-        background: #f8fafc;
-        color: #0f172a;
+        border-radius: 14px;
+        border: 1px solid #dbe3ef;
+        background: white;
+        padding: 0.9rem 1rem;
         font-size: 0.95rem;
         font-family: inherit;
+        color: var(--text-main);
         outline: none;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
     }
 
-    .form-group input:hover, .form-group select:hover, .form-group textarea:hover {
-        border-color: #cbd5e1;
-        background: #ffffff;
-    }
-
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-        border-color: #0f172a;
-        background: #ffffff;
-        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
-    }
-
-    .form-group input::placeholder, .form-group textarea::placeholder {
-        color: #94a3b8;
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.10);
     }
 
     .form-group textarea {
+        min-height: 96px;
         resize: vertical;
-        min-height: 90px;
-        line-height: 1.6;
+    }
+
+    .form-note {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+    }
+
+    .quick-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-top: 0.75rem;
+    }
+
+    .chip-btn {
+        padding: 0.5rem 0.8rem;
+        border-radius: 999px;
+        background: white;
+        border: 1px solid #dbe3ef;
+        color: #334155;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .chip-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-1px);
     }
 
     #submit-btn {
-        background: var(--gradient-primary);
-        color: white;
         width: 100%;
-        padding: 1.1rem 1.5rem;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        gap: 0.7rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.3);
+        padding: 0.95rem 1.2rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        box-shadow: 0 14px 30px rgba(99, 102, 241, 0.22);
     }
 
     #submit-btn:hover {
-        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4);
+        background: linear-gradient(135deg, #5558e8, #0992cf);
     }
 
-    #submit-btn:active {
-        transform: translateY(0);
+    .kw-results-panel {
+        padding: 1.4rem;
+        min-height: 720px;
     }
 
-    .keyword-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 2px solid #f1f5f9;
-        border-radius: 16px;
-        padding: 1.75rem;
-        margin-bottom: 1.25rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        animation: slideInUp 0.4s ease-out;
+    .empty-state,
+    .loading-state {
+        min-height: 620px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        color: var(--text-muted);
+        padding: 2rem;
     }
 
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .empty-state svg,
+    .loading-state svg {
+        display: none;
     }
 
-    .keyword-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 5px;
-        height: 100%;
-        background: var(--gradient-primary);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .keyword-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        transform: translateY(-4px);
-    }
-
-    .keyword-card:hover::before {
-        opacity: 1;
-    }
-
-    .keyword-header {
+    .results-toolbar {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.25rem;
+        align-items: flex-start;
         gap: 1rem;
-    }
-
-    .keyword-text {
-        font-size: 1.2rem;
-        font-weight: 800;
-        color: #0f172a;
-        line-height: 1.4;
-        flex: 1;
-    }
-
-    .keyword-metrics {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.15rem;
-        font-size: 0.85rem;
-        margin-top: 1.25rem;
-    }
-
-    .metric-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-        padding: 0.75rem 1rem;
-        background: var(--gradient-light);
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .metric-label {
-        font-weight: 700;
-        font-size: 0.75rem;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .metric-value {
-        color: #0f172a;
-        font-weight: 700;
-        font-size: 1rem;
-    }
-
-    .intent-badge {
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 0.4rem 0.9rem;
-        border-radius: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        white-space: nowrap;
-    }
-
-    .intent-transactional { 
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-    }
-    .intent-commercial { 
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-    }
-    .intent-informational { 
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: white;
-    }
-
-    .difficulty-badge { 
-        font-weight: 700;
-        font-size: 0.8rem;
-        padding: 0.35rem 0.8rem;
-        border-radius: 8px;
-        letter-spacing: 0.3px;
-    }
-    .difficulty-facile { 
-        background: #d1fae5;
-        color: #065f46;
-        border: 2px solid #6ee7b7;
-    }
-    .difficulty-moyen { 
-        background: #fef08a;
-        color: #854d0e;
-        border: 2px solid #fde047;
-    }
-    .difficulty-difficile { 
-        background: #fecaca;
-        color: #991b1b;
-        border: 2px solid #f87171;
-    }
-
-    .tabs-container {
-        display: flex;
-        gap: 0.75rem;
-        margin-bottom: 2rem;
-        border-bottom: 3px solid #f1f5f9;
-        padding-bottom: 0.75rem;
+        margin-bottom: 1.2rem;
         flex-wrap: wrap;
     }
 
-    .tab-btn {
-        padding: 0.7rem 1.3rem;
-        background: transparent;
-        border: none;
-        color: #64748b;
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 0.85rem;
-        border-radius: 10px;
-        transition: all 0.25s ease;
-        position: relative;
+    .results-eyebrow {
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        margin-bottom: 0.3rem;
     }
 
-    .tab-btn:hover {
+    .results-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 0.3rem;
+    }
+
+    .results-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .export-btn {
         background: #f8fafc;
-        color: #1e293b;
+        color: var(--text-main);
+        border: 1px solid #dbe3ef;
+        padding: 0.75rem 1rem;
+        border-radius: 14px;
+        box-shadow: none;
     }
 
-    .tab-btn.active {
-        background: var(--gradient-primary);
-        color: white;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    .export-btn:hover {
+        background: white;
+        border-color: var(--primary);
+        color: var(--primary);
     }
 
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 2.5rem;
+        gap: 1rem;
+        margin-bottom: 1.3rem;
     }
 
     .stat-box {
-        background: var(--gradient-light);
-        border: 2px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 1.75rem 1.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-
-    .stat-box:hover {
-        border-color: #cbd5e1;
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e5edf7;
+        border-radius: 18px;
+        padding: 1rem;
     }
 
     .stat-value {
-        font-size: 2.75rem;
+        font-size: 2rem;
         font-weight: 900;
-        background: var(--gradient-primary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: var(--text-main);
         line-height: 1;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.3rem;
     }
 
     .stat-label {
-        font-size: 0.75rem;
-        color: #64748b;
-        font-weight: 700;
+        font-size: 0.76rem;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
-        line-height: 1.3;
-    }
-
-    .strategy-box {
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border-left: 5px solid #0f172a;
-        border-radius: 16px;
-        padding: 2.25rem;
-        margin-top: 2.5rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .strategy-box h4 {
-        color: #0f172a;
-        font-weight: 800;
-        margin-bottom: 1.25rem;
-        font-size: 1.2rem;
-        letter-spacing: -0.3px;
-    }
-
-    .strategy-box p {
-        color: #334155;
-        line-height: 1.8;
-        font-size: 0.95rem;
-    }
-
-    .export-btn {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 2px solid #cbd5e1;
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
-        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
         font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 0.65rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow-sm);
     }
 
-    .export-btn:hover {
-        border-color: #0f172a;
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    .tabs-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .tab-btn {
+        padding: 0.65rem 0.9rem;
+        background: #f8fafc;
+        border: 1px solid #dbe3ef;
+        color: #475569;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: white;
+    }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 10px 18px rgba(99, 102, 241, 0.18);
+    }
+
+    .tab-count {
+        font-size: 0.72rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.08);
+    }
+
+    .tab-btn.active .tab-count {
+        background: rgba(255,255,255,0.18);
+    }
+
+    #keywords-list {
+        max-height: 620px;
+        overflow-y: auto;
+        padding-right: 0.4rem;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+
+    .keyword-card {
+        background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        border: 1px solid #e5edf7;
+        border-radius: 20px;
+        padding: 1rem;
+        margin-bottom: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .keyword-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        border-color: #cddaf0;
+    }
+
+    .keyword-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .keyword-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1.45;
+        margin-bottom: 0.45rem;
+    }
+
+    .keyword-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .meta-pill,
+    .intent-badge,
+    .difficulty-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.38rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .meta-pill {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    .intent-transactional {
+        background: rgba(16, 185, 129, 0.15);
+        color: #047857;
+    }
+
+    .intent-commercial {
+        background: rgba(59, 130, 246, 0.14);
+        color: #1d4ed8;
+    }
+
+    .intent-informational {
+        background: rgba(245, 158, 11, 0.18);
+        color: #b45309;
+    }
+
+    .difficulty-facile {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .difficulty-moyen {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .difficulty-difficile {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .keyword-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.7rem;
+    }
+
+    .metric-item {
+        background: #f8fafc;
+        border: 1px solid #e5edf7;
+        border-radius: 14px;
+        padding: 0.75rem;
+    }
+
+    .metric-label {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        text-transform: uppercase;
+    }
+
+    .metric-value {
+        font-weight: 800;
+        color: var(--text-main);
     }
 
     .relevance-bar {
-        height: 6px;
+        height: 8px;
         background: #e2e8f0;
-        border-radius: 10px;
+        border-radius: 999px;
+        margin-top: 0.9rem;
         overflow: hidden;
-        margin-top: 1.5rem;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
     }
 
     .relevance-fill {
         height: 100%;
-        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-        border-radius: 10px;
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        background: linear-gradient(90deg, var(--success), var(--accent));
+        border-radius: 999px;
+    }
+
+    .strategy-box {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(14, 165, 233, 0.08));
+        border: 1px solid rgba(99, 102, 241, 0.14);
+        border-radius: 20px;
+        padding: 1.2rem;
+        margin-top: 1.25rem;
+        color: #1e293b;
+        line-height: 1.7;
+    }
+
+    .strategy-box h4,
+    .strategy-box h3 {
+        margin-bottom: 0.6rem;
+        color: var(--text-main);
+    }
+
+    .spin {
+        animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
@@ -422,177 +534,199 @@
         to { transform: rotate(360deg); }
     }
 
-    .spin {
-        animation: spin 1s linear infinite;
-    }
-
-    /* Custom scrollbar */
     #keywords-list::-webkit-scrollbar {
         width: 8px;
     }
 
     #keywords-list::-webkit-scrollbar-track {
         background: #f1f5f9;
-        border-radius: 10px;
+        border-radius: 999px;
     }
 
     #keywords-list::-webkit-scrollbar-thumb {
         background: #cbd5e1;
-        border-radius: 10px;
+        border-radius: 999px;
     }
 
-    #keywords-list::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-
-    @media (max-width: 1280px) {
-        .kw-form-container {
-            grid-template-columns: 380px 1fr;
-            gap: 2rem;
-        }
-    }
-
-    @media (max-width: 1024px) {
-        .kw-form-container {
+    @media (max-width: 1100px) {
+        .kw-hero-grid,
+        .kw-layout {
             grid-template-columns: 1fr;
         }
 
-        .kw-hero h1 {
-            font-size: 2.75rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+        .kw-panel {
+            position: static;
         }
     }
 
-    @media (max-width: 640px) {
-        .kw-hero h1 {
+    @media (max-width: 720px) {
+        .kw-hero-card {
+            padding: 1.35rem;
+        }
+
+        .kw-hero-card h1 {
             font-size: 2.25rem;
         }
 
-        .kw-hero .subtitle {
-            font-size: 1rem;
+        .keyword-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .kw-card {
-            padding: 1.75rem;
+        .results-toolbar {
+            flex-direction: column;
+            align-items: stretch;
         }
+    }
 
-        .stats-grid {
+    @media (max-width: 520px) {
+        .keyword-metrics {
             grid-template-columns: 1fr;
         }
 
-        .tabs-container {
-            gap: 0.5rem;
-        }
-
-        .tab-btn {
-            padding: 0.55rem 0.95rem;
-            font-size: 0.8rem;
-        }
-
-        .keyword-card {
-            padding: 1.25rem;
-        }
-
-        .keyword-text {
-            font-size: 1.05rem;
+        .kw-panel,
+        .kw-results-panel {
+            padding: 1rem;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 1200px; margin: 0 auto;">
-    <div class="kw-hero">
-        <h1>OctaKeywords</h1>
-        <p class="subtitle">Outil de recherche de mots-clés et analyse sémantique professionnelle</p>
-    </div>
-
-    <div class="kw-form-container">
-        <!-- Form -->
-        <div class="kw-card">
-            <h3 style="margin-bottom: 2.25rem; font-size: 1.15rem; color: #0f172a; font-weight: 800; letter-spacing: -0.3px;">
-                🔍 Configuration de la recherche
-            </h3>
-            <form id="keywords-form">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label>Secteur d'activité</label>
-                    <input type="text" name="activity" placeholder="ex: Plomberie, Restaurant, SaaS, Marketing" required>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label>Pays</label>
-                        <select name="country" required>
-                            <option value="France">France</option>
-                            <option value="Belgique">Belgique</option>
-                            <option value="Suisse">Suisse</option>
-                            <option value="Canada">Canada</option>
-                            <option value="Maroc">Maroc</option>
-                            <option value="Algérie">Algérie</option>
-                            <option value="Tunisie">Tunisie</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Région / Ville</label>
-                        <input type="text" name="region" placeholder="ex: Paris, Lyon, Marseille">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Type de site</label>
-                    <select name="site_type">
-                        <option value="Vitrine">Site Vitrine</option>
-                        <option value="E-commerce">Boutique en ligne (E-commerce)</option>
-                        <option value="Blog">Blog / Média</option>
-                        <option value="Portfolio">Portfolio</option>
-                        <option value="SaaS">Application SaaS</option>
-                        <option value="Services">Services Professionnels</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description du projet</label>
-                    <textarea name="description" rows="3" placeholder="Décrivez votre activité et vos objectifs SEO..."></textarea>
-                </div>
-                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    Rechercher les mots-clés
-                </button>
-            </form>
+<div class="container animate-fade-in kw-page">
+    <section class="kw-hero-card">
+        <div class="kw-badge">
+            <span>⚡</span>
+            Générateur sémantique intelligent
         </div>
 
-        <!-- Results -->
-        <div class="kw-card" id="results-area" style="min-height: 550px; background: transparent; border: none; box-shadow: none; padding: 0;">
-            <div id="placeholder-text" style="text-align: center; margin-top: 6rem; color: #94a3b8;">
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 2rem; opacity: 0.3; display: block;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <p style="font-size: 1.05rem; line-height: 1.6;">Configurez les paramètres et lancez l'analyse<br>pour afficher les résultats</p>
+        <div class="kw-hero-grid">
+            <div>
+                <h1>OctaKeywords</h1>
+                <p class="subtitle">
+                    Une interface plus moderne pour générer des opportunités SEO, des quick wins et une stratégie de contenu en quelques secondes.
+                </p>
+                <div class="kw-feature-list">
+                    <div class="kw-feature-item">Intentions détectées</div>
+                    <div class="kw-feature-item">Tri par priorité</div>
+                    <div class="kw-feature-item">Export CSV</div>
+                    <div class="kw-feature-item">Vision locale & nationale</div>
+                </div>
             </div>
-            
+
+            <div class="kw-hero-stats">
+                <div class="hero-stat">
+                    <strong>SEO local</strong>
+                    <span>Idéal pour vitrines, e-commerce et services.</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>Quick wins</strong>
+                    <span>Mettez en avant les mots-clés les plus accessibles.</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>Plan éditorial</strong>
+                    <span>Transformez les résultats en idées de contenu.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="kw-layout">
+        <aside class="kw-panel">
+            <div class="panel-title">Configuration</div>
+            <p class="panel-subtitle">Définissez votre activité pour obtenir des mots-clés adaptés à votre logiciel.</p>
+
+            <form id="keywords-form">
+                {% csrf_token %}
+
+                <div class="panel-block">
+                    <div class="form-group">
+                        <label>Secteur d'activité</label>
+                        <input type="text" name="activity" placeholder="ex: Plomberie, Restaurant, SaaS, Marketing" required>
+                        <div class="form-note">Astuce : soyez précis pour obtenir des résultats plus pertinents.</div>
+                    </div>
+
+                    <div class="quick-chips">
+                        <button type="button" class="chip-btn" data-activity="Plomberie">Plomberie</button>
+                        <button type="button" class="chip-btn" data-activity="Restaurant">Restaurant</button>
+                        <button type="button" class="chip-btn" data-activity="Agence marketing">Agence marketing</button>
+                        <button type="button" class="chip-btn" data-activity="SaaS B2B">SaaS B2B</button>
+                    </div>
+                </div>
+
+                <div class="panel-block">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                        <div class="form-group">
+                            <label>Pays</label>
+                            <select name="country" required>
+                                <option value="France">France</option>
+                                <option value="Belgique">Belgique</option>
+                                <option value="Suisse">Suisse</option>
+                                <option value="Canada">Canada</option>
+                                <option value="Maroc">Maroc</option>
+                                <option value="Algérie">Algérie</option>
+                                <option value="Tunisie">Tunisie</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Région / Ville</label>
+                            <input type="text" name="region" placeholder="ex: Paris, Lyon">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Type de site</label>
+                        <select name="site_type">
+                            <option value="Vitrine">Site Vitrine</option>
+                            <option value="E-commerce">Boutique en ligne (E-commerce)</option>
+                            <option value="Blog">Blog / Média</option>
+                            <option value="Portfolio">Portfolio</option>
+                            <option value="SaaS">Application SaaS</option>
+                            <option value="Services">Services Professionnels</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="panel-block">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Description du projet</label>
+                        <textarea name="description" rows="3" placeholder="Décrivez votre activité, vos offres et vos objectifs SEO..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Générer les mots-clés
+                </button>
+            </form>
+        </aside>
+
+        <section class="kw-results-panel" id="results-area">
+            <div id="placeholder-text" class="empty-state" style="display: none;">
+                <svg width="78" height="78" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Résultats prêts à s'afficher</h3>
+                <p>Lancez une recherche pour voir les opportunités SEO, les mots-clés prioritaires et la stratégie recommandée.</p>
+            </div>
+
             <div id="actual-results" style="display: none; width: 100%;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-                    <h3 style="color: #0f172a; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px;">📊 Résultats de l'analyse</h3>
+                <div class="results-toolbar">
+                    <div>
+                        <div class="results-eyebrow">Analyse sémantique</div>
+                        <div class="results-title">Opportunités de mots-clés</div>
+                        <div class="results-subtitle" id="results-subtitle">Résultats filtrés selon votre activité</div>
+                    </div>
+
                     <button class="export-btn" id="export-csv">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         Exporter CSV
                     </button>
                 </div>
 
-                <!-- Stats Overview -->
                 <div class="stats-grid" id="stats-grid"></div>
-                
-                <!-- Category Tabs -->
                 <div class="tabs-container" id="tabs-container"></div>
-                
-                <!-- Keywords List -->
-                <div id="keywords-list" style="max-height: 650px; overflow-y: auto; padding-right: 0.75rem; scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;">
-                    <!-- Keywords will be inserted here -->
-                </div>
-                
-                <!-- Strategy Box -->
+                <div id="keywords-list"></div>
                 <div class="strategy-box" id="strategy-text"></div>
             </div>
-        </div>
+        </section>
     </div>
 </div>
 {% endblock %}
@@ -601,29 +735,54 @@
 <script>
     const form = document.getElementById('keywords-form');
     const submitBtn = document.getElementById('submit-btn');
-    const resultsArea = document.getElementById('results-area');
     const placeholder = document.getElementById('placeholder-text');
     const actualResults = document.getElementById('actual-results');
-    
+    const activityInput = form.querySelector('[name="activity"]');
+    const countryInput = form.querySelector('[name="country"]');
+    const regionInput = form.querySelector('[name="region"]');
+    const siteTypeInput = form.querySelector('[name="site_type"]');
+
     let allKeywordsData = [];
     let currentCategory = 'all';
 
+    document.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            activityInput.value = btn.dataset.activity;
+            activityInput.focus();
+        });
+    });
+
     form.onsubmit = async (e) => {
         e.preventDefault();
+
+        placeholder.style.display = 'flex';
+        actualResults.style.display = 'none';
+        placeholder.innerHTML = `
+            <div class="loading-state">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="spin">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Analyse en cours…</h3>
+                <p>Génération des mots-clés pour <strong>${activityInput.value || 'votre activité'}</strong>.</p>
+            </div>
+        `;
+
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analyse en cours...';
+        submitBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analyse en cours...';
 
         const formData = new FormData(form);
+
         try {
             const response = await fetch('{% url "keywords_generate" %}', {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' }
             });
+
             const data = await response.json();
-            
+
             if (response.ok) {
-                allKeywordsData = data.keywords;
+                allKeywordsData = data.keywords || [];
                 displayResults(data);
             } else {
                 alert(data.error || 'Erreur lors de la génération');
@@ -632,17 +791,25 @@
             alert('Erreur réseau : ' + err.message);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Rechercher les mots-clés';
+            submitBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Générer les mots-clés';
         }
     };
-    
+
     function displayResults(data) {
+        const avgRelevance = data.keywords.length
+            ? Math.round(data.keywords.reduce((sum, kw) => sum + Number(kw.relevance || 0), 0) / data.keywords.length)
+            : 0;
+
         placeholder.style.display = 'none';
         actualResults.style.display = 'block';
-        resultsArea.style.justifyContent = 'flex-start';
-        resultsArea.style.alignItems = 'flex-start';
-        
-        // Stats
+
+        document.getElementById('results-subtitle').textContent = [
+            activityInput.value || 'Activité non précisée',
+            countryInput.value,
+            regionInput.value || 'Sans région',
+            siteTypeInput.value
+        ].join(' • ');
+
         const statsGrid = document.getElementById('stats-grid');
         statsGrid.innerHTML = `
             <div class="stat-box">
@@ -658,12 +825,11 @@
                 <div class="stat-label">Quick wins</div>
             </div>
             <div class="stat-box">
-                <div class="stat-value" style="color: var(--warning)">${data.stats.long_term}</div>
-                <div class="stat-label">Long terme</div>
+                <div class="stat-value" style="color: var(--warning)">${avgRelevance}%</div>
+                <div class="stat-label">Pertinence moyenne</div>
             </div>
         `;
-        
-        // Tabs
+
         const tabsContainer = document.getElementById('tabs-container');
         const categories = [
             { id: 'all', label: 'Global', count: data.keywords.length },
@@ -672,74 +838,89 @@
             { id: 'transactional', label: 'Transactionnels', count: data.categories.transactional.length },
             { id: 'informational', label: 'Informationnels', count: data.categories.informational.length },
         ];
-        
-        tabsContainer.innerHTML = categories.map(cat => 
-            `<button class="tab-btn ${cat.id === 'all' ? 'active' : ''}" data-category="${cat.id}">
-                ${cat.label}
-            </button>`
-        ).join('');
-        
-        // Tab click handlers
+
+        tabsContainer.innerHTML = categories.map(cat => `
+            <button class="tab-btn ${cat.id === 'all' ? 'active' : ''}" data-category="${cat.id}">
+                <span>${cat.label}</span>
+                <span class="tab-count">${cat.count}</span>
+            </button>
+        `).join('');
+
         tabsContainer.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                const category = btn.dataset.category;
-                currentCategory = category;
-                
-                let keywordsToShow = [];
-                if (category === 'all') {
-                    keywordsToShow = data.keywords;
-                } else {
-                    keywordsToShow = data.categories[category] || [];
-                }
+                currentCategory = btn.dataset.category;
+                const keywordsToShow = currentCategory === 'all'
+                    ? data.keywords
+                    : (data.categories[currentCategory] || []);
                 displayKeywords(keywordsToShow);
             });
         });
-        
-        // Display all keywords initially
+
         displayKeywords(data.keywords);
-        
-        // Strategy
         document.getElementById('strategy-text').innerHTML = data.strategy;
-        
-        // Export CSV handler
         document.getElementById('export-csv').onclick = () => exportToCSV(data.keywords);
     }
-    
+
+    function getPriorityText(relevance) {
+        if (relevance >= 85) return 'Priorité haute';
+        if (relevance >= 70) return 'Bon potentiel';
+        return 'À travailler';
+    }
+
     function displayKeywords(keywords) {
         const list = document.getElementById('keywords-list');
+
+        if (!keywords.length) {
+            list.innerHTML = `
+                <div class="empty-state" style="min-height: 260px;">
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <p>Aucun mot-clé disponible dans ce filtre.</p>
+                </div>
+            `;
+            return;
+        }
+
         list.innerHTML = keywords.map(kw => `
             <div class="keyword-card">
-                <div class="keyword-header">
-                    <div class="keyword-text">${kw.keyword}</div>
-                    <span class="intent-badge intent-${kw.intent}">${kw.intent}</span>
+                <div class="keyword-top">
+                    <div>
+                        <div class="keyword-title">${kw.keyword}</div>
+                        <div class="keyword-meta">
+                            <span class="intent-badge intent-${kw.intent}">${kw.intent}</span>
+                            <span class="difficulty-badge difficulty-${kw.difficulty}">${kw.difficulty}</span>
+                            <span class="meta-pill">${getPriorityText(Number(kw.relevance || 0))}</span>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="keyword-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">Difficulté</span>
-                        <span class="difficulty-badge difficulty-${kw.difficulty}">${kw.difficulty}</span>
+                        <span class="metric-label">Volume</span>
+                        <span class="metric-value">${kw.volume_estimate}</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Volume estimé</span>
-                        <span class="metric-value">${kw.volume_estimate}</span>
+                        <span class="metric-label">Pertinence</span>
+                        <span class="metric-value">${kw.relevance}/100</span>
                     </div>
                     <div class="metric-item">
                         <span class="metric-label">Nb mots</span>
                         <span class="metric-value">${kw.word_count}</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Pertinence</span>
-                        <span class="metric-value">${kw.relevance}/100</span>
+                        <span class="metric-label">Intent</span>
+                        <span class="metric-value">${kw.intent}</span>
                     </div>
                 </div>
+
                 <div class="relevance-bar">
                     <div class="relevance-fill" style="width: ${kw.relevance}%"></div>
                 </div>
             </div>
         `).join('');
     }
-    
+
     function exportToCSV(keywords) {
         const headers = ['Mot-clé', 'Intent', 'Difficulté', 'Volume', 'Pertinence', 'Nb Mots'];
         const rows = keywords.map(kw => [
@@ -750,12 +931,12 @@
             kw.relevance,
             kw.word_count
         ]);
-        
+
         let csv = headers.join(',') + '\n';
         rows.forEach(row => {
             csv += row.map(cell => `"${cell}"`).join(',') + '\n';
         });
-        
+
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);

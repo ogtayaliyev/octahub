@@ -5,115 +5,183 @@
 
 {% block extra_css %}
 <style>
-    .crawler-container {
+    .crawler-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-top: 2rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
     }
+
     .crawler-card {
-        background: rgba(255, 255, 255, 0.05);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
         border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.2rem;
+        border: 1px solid #e5edf7;
+        min-height: 220px;
     }
+
     .crawler-card h3 {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        color: var(--accent);
+        gap: 0.65rem;
+        color: var(--text-main);
+        font-size: 1.05rem;
     }
+
     .tech-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem;
+        gap: 0.65rem;
     }
+
     .tech-tag {
-        background: var(--primary);
-        padding: 0.5rem 1rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
+        background: #eef2ff;
+        color: #4338ca;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
     }
+
     .color-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
         gap: 1rem;
+        padding-bottom: 1.25rem;
     }
+
     .color-swatch {
         aspect-ratio: 1;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
         cursor: pointer;
         transition: transform 0.2s;
         position: relative;
     }
+
     .color-swatch:hover {
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
+
     .color-swatch::after {
         content: attr(data-hex);
         position: absolute;
-        bottom: -20px;
+        bottom: -18px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 0.6rem;
+        font-size: 0.65rem;
         color: var(--text-muted);
+        white-space: nowrap;
     }
+
     .font-item {
-        padding: 0.75rem;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
-        margin-bottom: 0.5rem;
+        padding: 0.8rem 0.9rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.55rem;
         font-size: 0.9rem;
+        border: 1px solid #e5edf7;
         border-left: 3px solid var(--primary);
+    }
+
+    #site-stats {
+        color: var(--text-main);
+        line-height: 1.7;
+    }
+
+    @media (max-width: 860px) {
+        .crawler-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
-    <h1>OctaCrawler</h1>
-    <p class="subtitle">Analysez les technologies, couleurs et polices de n'importe quel site.</p>
-    
-    <form id="crawler-form">
-        {% csrf_token %}
-        <div class="input-group">
-            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
-            <button type="submit" id="submit-btn">
-                <span>Analyser</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            </button>
+<div class="container animate-fade-in tool-page">
+    <section class="tool-hero-card">
+        <div class="tool-badge">🕷️ Analyse techno & design</div>
+        <div class="tool-hero-grid">
+            <div>
+                <h1>OctaCrawler</h1>
+                <p class="subtitle">Détectez les technologies, les couleurs, les polices et les infos structurelles d'un site dans une interface moderne et plus large.</p>
+                <div class="tool-feature-list">
+                    <div class="tool-feature-item">Technologies détectées</div>
+                    <div class="tool-feature-item">Palette couleurs</div>
+                    <div class="tool-feature-item">Polices & infos domaine</div>
+                </div>
+            </div>
+            <div class="tool-hero-stats">
+                <div class="hero-stat"><strong>Stack web</strong><span>Repérez rapidement les technos présentes.</span></div>
+                <div class="hero-stat"><strong>Branding</strong><span>Couleurs et typos du site analysé.</span></div>
+                <div class="hero-stat"><strong>Vue rapide</strong><span>Statistiques claires pour votre audit.</span></div>
+            </div>
         </div>
-    </form>
+    </section>
 
-    <div class="progress-container" id="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <p id="status-text">Analyse technologique en cours...</p>
-    </div>
+    <div class="tool-layout">
+        <aside class="tool-panel">
+            <div class="tool-panel-title">Lancer l'analyse</div>
+            <p class="tool-panel-subtitle">Entrez une URL pour récupérer les éléments visuels et technologiques du site.</p>
 
-    <div id="results-container" style="display: none;">
-        <div class="crawler-container">
-            <div class="crawler-card">
-                <h3>Technologies</h3>
-                <div class="tech-list" id="tech-list"></div>
+            <form id="crawler-form">
+                {% csrf_token %}
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                    <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+                </div>
+                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
+                    <span>Analyser</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </button>
+            </form>
+
+            <div class="tool-info-box" style="margin-top: 1rem;">
+                <strong style="display:block; margin-bottom:0.4rem; color: var(--text-main);">Informations extraites</strong>
+                <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.7;">
+                    • CMS / bibliothèques détectées<br>
+                    • Couleurs dominantes<br>
+                    • Polices visibles<br>
+                    • Infos de domaine et sitemap
+                </div>
             </div>
-            <div class="crawler-card">
-                <h3>Couleurs Détectées</h3>
-                <div class="color-grid" id="color-grid"></div>
+
+            <div class="progress-container" id="progress-container" style="margin: 1rem 0 0 0;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="status-text">Analyse technologique en cours...</p>
             </div>
-            <div class="crawler-card">
-                <h3>Polices (Fonts)</h3>
-                <div id="font-list"></div>
+        </aside>
+
+        <section class="tool-results-card">
+            <div id="results-container" style="display: none;">
+                <div class="tool-toolbar">
+                    <div>
+                        <h3>Résultats de l'analyse</h3>
+                        <p>Vue d'ensemble des technologies, couleurs et polices détectées.</p>
+                    </div>
+                </div>
+
+                <div class="crawler-grid">
+                    <div class="crawler-card">
+                        <h3>Technologies</h3>
+                        <div class="tech-list" id="tech-list"></div>
+                    </div>
+                    <div class="crawler-card">
+                        <h3>Couleurs détectées</h3>
+                        <div class="color-grid" id="color-grid"></div>
+                    </div>
+                    <div class="crawler-card">
+                        <h3>Polices</h3>
+                        <div id="font-list"></div>
+                    </div>
+                    <div class="crawler-card">
+                        <h3>Statistiques du site</h3>
+                        <p id="site-stats" class="meta-value"></p>
+                    </div>
+                </div>
             </div>
-            <div class="crawler-card">
-                <h3>Statistiques du Site</h3>
-                <p id="site-stats" class="meta-value"></p>
-            </div>
-        </div>
+        </section>
     </div>
 </div>
 {% endblock %}

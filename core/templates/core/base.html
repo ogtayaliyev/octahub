@@ -91,7 +91,7 @@
             flex: 1;
             height: 100vh;
             overflow-y: auto;
-            padding: 3rem;
+            padding: 2rem 2.25rem;
             background: var(--bg-app);
         }
         .user-pill {
@@ -151,6 +151,10 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14.7 8.38 8.38 0 0 1 3.8.9L21 3.5v8z"/></svg>
                 OctaKeywords
             </a>
+            <a href="{% url 'feedback_index' %}" class="nav-item {% if request.resolver_match.url_name == 'feedback_index' %}active{% endif %}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Idées & Contact
+            </a>
             <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Mon Profil
@@ -168,6 +172,8 @@
                 <a href="{% url 'terms' %}" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;">Conditions</a>
                 <span>•</span>
                 <a href="{% url 'privacy' %}" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;">Confidentialité</a>
+                <span>•</span>
+                <a href="{% url 'feedback_index' %}" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;">Idées</a>
             </div>
             <form action="{% url 'logout' %}" method="post" style="width: 100%;">
                 {% csrf_token %}

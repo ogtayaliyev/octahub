@@ -65,61 +65,103 @@
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
-    <h1>OctaAudit</h1>
-    <p class="subtitle">Analysez le poids des images et optimisez les performances de votre site.</p>
-    
-    <form id="audit-form">
-        {% csrf_token %}
-        <div class="input-group">
-            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
-            <button type="submit" id="submit-btn" style="padding: 0.75rem 3rem;">
-                <span>Lancer l'Audit</span>
-            </button>
-        </div>
-        <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
-            <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
-            <label for="deep-scan">Scan profond (parcourir tout le site)</label>
-        </div>
-    </form>
-
-    <div class="progress-container" id="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <p id="status-text">Analyse des images en cours...</p>
-    </div>
-
-    <div id="results-container" style="display: none; margin-top: 3rem;">
-        <div class="audit-summary">
-            <div class="summary-card">
-                <h3>Images trouvées</h3>
-                <div class="value" id="count-imgs">0</div>
+<div class="container animate-fade-in tool-page">
+    <section class="tool-hero-card">
+        <div class="tool-badge">🧪 Performance visuelle</div>
+        <div class="tool-hero-grid">
+            <div>
+                <h1>OctaAudit</h1>
+                <p class="subtitle">Mesurez le poids des images, estimez les gains possibles et identifiez rapidement les médias à optimiser.</p>
+                <div class="tool-feature-list">
+                    <div class="tool-feature-item">Poids total du site</div>
+                    <div class="tool-feature-item">Économie WebP</div>
+                    <div class="tool-feature-item">Priorisation visuelle</div>
+                </div>
             </div>
-            <div class="summary-card">
-                <h3>Poids Total</h3>
-                <div class="value" id="total-weight">0 MB</div>
-            </div>
-            <div class="summary-card">
-                <h3>Économie Potentielle</h3>
-                <div class="value" id="potential-savings" style="color: var(--success);">0 KB</div>
+            <div class="tool-hero-stats">
+                <div class="hero-stat"><strong>Audit rapide</strong><span>Vue claire sur les fichiers lourds.</span></div>
+                <div class="hero-stat"><strong>Scan profond</strong><span>Explore plusieurs pages du site.</span></div>
+                <div class="hero-stat"><strong>Optimisation</strong><span>Détecte les gains d'allègement potentiels.</span></div>
             </div>
         </div>
+    </section>
 
-        <div class="audit-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Image URL</th>
-                        <th>Format</th>
-                        <th>Taille</th>
-                        <th>Status</th>
-                        <th>Optimisation (WebP)</th>
-                    </tr>
-                </thead>
-                <tbody id="audit-tbody"></tbody>
-            </table>
-        </div>
+    <div class="tool-layout">
+        <aside class="tool-panel">
+            <div class="tool-panel-title">Lancer un audit</div>
+            <p class="tool-panel-subtitle">Analysez les médias du site et repérez les images à compresser.</p>
+
+            <form id="audit-form">
+                {% csrf_token %}
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                    <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+                </div>
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                    <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
+                    <label for="deep-scan">Scan profond (parcourir tout le site)</label>
+                </div>
+                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
+                    <span>Lancer l'audit</span>
+                </button>
+            </form>
+
+            <div class="tool-info-box" style="margin-top: 1rem;">
+                <strong style="display:block; margin-bottom:0.4rem; color: var(--text-main);">Sortie attendue</strong>
+                <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.7;">
+                    • Nombre d'images détectées<br>
+                    • Poids total estimé<br>
+                    • Format et statut d'optimisation<br>
+                    • Économie potentielle en WebP
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container" style="margin: 1rem 0 0 0;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="status-text">Analyse des images en cours...</p>
+            </div>
+        </aside>
+
+        <section class="tool-results-card">
+            <div id="audit-empty" class="tool-empty">
+                <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Rapport d'audit visuel</h3>
+                <p>Lancez un scan pour afficher les images, le poids total et les opportunités d'optimisation.</p>
+            </div>
+
+            <div id="results-container" style="display: none; margin-top: 0;">
+                <div class="audit-summary">
+                    <div class="summary-card">
+                        <h3>Images trouvées</h3>
+                        <div class="value" id="count-imgs">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Poids Total</h3>
+                        <div class="value" id="total-weight">0 MB</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Économie Potentielle</h3>
+                        <div class="value" id="potential-savings" style="color: var(--success);">0 KB</div>
+                    </div>
+                </div>
+
+                <div class="audit-table tool-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image URL</th>
+                                <th>Format</th>
+                                <th>Taille</th>
+                                <th>Status</th>
+                                <th>Optimisation (WebP)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 {% endblock %}

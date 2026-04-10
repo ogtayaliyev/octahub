@@ -59,30 +59,77 @@
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
-    <h1>OctaForms</h1>
-    <p class="subtitle">Inspectez la structure des formulaires et les noms des inputs pour vos automatisations.</p>
-    
-    <form id="forms-form">
-        {% csrf_token %}
-        <div class="input-group">
-            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
-            <button type="submit" id="submit-btn" style="padding: 0.75rem 3rem;">
-                <span>Lancer l'Inspection</span>
-            </button>
+<div class="container animate-fade-in tool-page">
+    <section class="tool-hero-card">
+        <div class="tool-badge">🧩 Inspection de formulaires</div>
+        <div class="tool-hero-grid">
+            <div>
+                <h1>OctaForms</h1>
+                <p class="subtitle">Explorez les formulaires d'un site, les champs détectés et les attributs utiles pour vos automatisations.</p>
+                <div class="tool-feature-list">
+                    <div class="tool-feature-item">Champs détectés</div>
+                    <div class="tool-feature-item">Méthodes & actions</div>
+                    <div class="tool-feature-item">Support HTML & dynamique</div>
+                </div>
+            </div>
+            <div class="tool-hero-stats">
+                <div class="hero-stat"><strong>Inspection rapide</strong><span>Repérez la structure des formulaires en quelques secondes.</span></div>
+                <div class="hero-stat"><strong>Automatisation</strong><span>Identifiez les `name` et `id` utiles.</span></div>
+                <div class="hero-stat"><strong>Vue claire</strong><span>Chaque formulaire est présenté sous forme de carte.</span></div>
+            </div>
         </div>
-    </form>
+    </section>
 
-    <div class="progress-container" id="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <p id="status-text">Analyse des formulaires en cours...</p>
-    </div>
+    <div class="tool-layout">
+        <aside class="tool-panel">
+            <div class="tool-panel-title">Lancer l'inspection</div>
+            <p class="tool-panel-subtitle">Entrez une URL pour détecter les formulaires HTML et dynamiques.</p>
 
-    <div id="results-container" style="display: none; margin-top: 3rem;">
-        <h2 id="result-count" style="margin-bottom: 2rem;">Formulaires détectés</h2>
-        <div id="forms-list"></div>
+            <form id="forms-form">
+                {% csrf_token %}
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                    <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+                </div>
+                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
+                    <span>Lancer l'inspection</span>
+                </button>
+            </form>
+
+            <div class="tool-info-box" style="margin-top: 1rem;">
+                <strong style="display:block; margin-bottom:0.4rem; color: var(--text-main);">Données affichées</strong>
+                <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.7;">
+                    • Type de formulaire<br>
+                    • Méthode / action<br>
+                    • Champs requis et identifiants<br>
+                    • Détection standard + JS/Odoo
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container" style="margin: 1rem 0 0 0;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="status-text">Analyse des formulaires en cours...</p>
+            </div>
+        </aside>
+
+        <section class="tool-results-card">
+            <div id="forms-empty" class="tool-empty">
+                <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Résultats d'inspection</h3>
+                <p>Analysez une page pour afficher les formulaires, les champs et leurs attributs techniques.</p>
+            </div>
+
+            <div id="results-container" style="display: none; margin-top: 0;">
+                <div class="tool-toolbar">
+                    <div>
+                        <h3 id="result-count">Formulaires détectés</h3>
+                        <p>Vue détaillée des structures trouvées sur le site.</p>
+                    </div>
+                </div>
+                <div id="forms-list" class="tool-scroll"></div>
+            </div>
+        </section>
     </div>
 </div>
 {% endblock %}

@@ -27,31 +27,78 @@
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
-    <h1>OctaMap</h1>
-    <p class="subtitle">Visualisez la structure hiérarchique et l'arbre des liens de votre site.</p>
-    
-    <form id="vmap-form">
-        {% csrf_token %}
-        <div class="input-group">
-            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
-            <button type="submit" id="submit-btn" style="padding: 0.75rem 3rem;">
-                <span>Cartographier</span>
-            </button>
+<div class="container animate-fade-in tool-page">
+    <section class="tool-hero-card">
+        <div class="tool-badge">🗺️ Visualisation de structure</div>
+        <div class="tool-hero-grid">
+            <div>
+                <h1>OctaMap</h1>
+                <p class="subtitle">Cartographiez l'architecture d'un site et visualisez les relations entre les pages sous forme de graphe.</p>
+                <div class="tool-feature-list">
+                    <div class="tool-feature-item">Arbre des liens</div>
+                    <div class="tool-feature-item">Vue Mermaid</div>
+                    <div class="tool-feature-item">Exploration hiérarchique</div>
+                </div>
+            </div>
+            <div class="tool-hero-stats">
+                <div class="hero-stat"><strong>Vue rapide</strong><span>Repérez la structure globale du site.</span></div>
+                <div class="hero-stat"><strong>Nœuds liés</strong><span>Visualisez les pages parentes et enfants.</span></div>
+                <div class="hero-stat"><strong>Support Mermaid</strong><span>Rendu propre et interactif.</span></div>
+            </div>
         </div>
-    </form>
+    </section>
 
-    <div class="progress-container" id="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <p id="status-text">Génération de la carte du site...</p>
-    </div>
+    <div class="tool-layout">
+        <aside class="tool-panel">
+            <div class="tool-panel-title">Générer une carte</div>
+            <p class="tool-panel-subtitle">Saisissez l'URL de départ pour construire l'arborescence du site.</p>
 
-    <div id="results-container" style="display: none;">
-        <div class="vmap-container" id="vmap-container">
-            <div id="mermaid-render"></div>
-        </div>
+            <form id="vmap-form">
+                {% csrf_token %}
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                    <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+                </div>
+                <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
+                    <span>Cartographier</span>
+                </button>
+            </form>
+
+            <div class="tool-info-box" style="margin-top: 1rem;">
+                <strong style="display:block; margin-bottom:0.4rem; color: var(--text-main);">Utilisation</strong>
+                <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.7;">
+                    • Lance le crawl depuis une URL racine<br>
+                    • Génère un graphe des pages internes<br>
+                    • Met en évidence la hiérarchie des liens
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container" style="margin: 1rem 0 0 0;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="status-text">Génération de la carte du site...</p>
+            </div>
+        </aside>
+
+        <section class="tool-results-card">
+            <div id="vmap-empty" class="tool-empty">
+                <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Carte du site</h3>
+                <p>Le graphe Mermaid apparaîtra ici après l'analyse de l'URL.</p>
+            </div>
+
+            <div id="results-container" style="display: none;">
+                <div class="tool-toolbar">
+                    <div>
+                        <h3>Structure du site</h3>
+                        <p>Visualisation des liens et des pages découvertes.</p>
+                    </div>
+                </div>
+                <div class="vmap-container" id="vmap-container">
+                    <div id="mermaid-render"></div>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 {% endblock %}

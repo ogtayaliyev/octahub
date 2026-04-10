@@ -5,35 +5,36 @@
 
 {% block extra_css %}
 <style>
-    .scraper-container {
-        display: flex;
-        gap: 2rem;
-        height: calc(100vh - 6rem);
-        margin: -1rem; /* Adjusting for parent padding */
+    .scraper-page {
+        max-width: 1520px;
+        margin: 0 auto;
     }
 
-    /* Left Sidebar Panel */
+    .scraper-layout {
+        display: grid;
+        grid-template-columns: 410px minmax(0, 1fr);
+        gap: 1.75rem;
+        align-items: start;
+    }
+
     .scraper-control-panel {
-        width: 320px;
         background: white;
         border-radius: 24px;
-        padding: 2rem;
+        padding: 1.6rem;
         box-shadow: var(--card-shadow);
-        border: 1px solid rgba(0,0,0,0.03);
+        border: 1px solid rgba(15, 23, 42, 0.06);
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
-        overflow-y: auto;
+        gap: 1rem;
+        position: sticky;
+        top: 1.5rem;
     }
 
-    /* Right Results Area */
     .scraper-results-area {
-        flex: 1;
-        background: transparent;
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
-        overflow: hidden;
+        gap: 1rem;
+        min-width: 0;
     }
 
     .results-header {
@@ -41,100 +42,14 @@
         justify-content: space-between;
         align-items: center;
         background: white;
-        padding: 1rem 2rem;
+        padding: 1rem 1.2rem;
         border-radius: 20px;
         box-shadow: var(--card-shadow);
-        border: 1px solid rgba(0,0,0,0.03);
-    }
-
-    /* Vertical Navigation Menu */
-    .filter-menu {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }
-
-    .filter-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.85rem 1.25rem;
-        border-radius: 12px;
-        cursor: pointer;
-        color: var(--text-muted);
-        font-weight: 600;
-        transition: all 0.3s ease;
-        background: transparent;
-    }
-
-    .filter-item:hover {
-        background: #f8fafc;
-        color: var(--primary);
-    }
-
-    .filter-item.active {
-        background: var(--primary);
-        color: white;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-    }
-
-    .count-badge {
-        font-size: 0.75rem;
-        background: rgba(0,0,0,0.05);
-        padding: 2px 8px;
-        border-radius: 10px;
-        min-width: 24px;
-        text-align: center;
-    }
-
-    .filter-item.active .count-badge {
-        background: rgba(255,255,255,0.2);
-        color: white;
-    }
-
-    /* Media Grid Styling */
-    .media-scroll-area {
-        flex: 1;
-        overflow-y: auto;
-        padding-right: 0.5rem;
-    }
-
-    .media-grid {
-        display: none;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-        animation: fadeIn 0.4s ease forwards;
-    }
-
-    .media-grid.active {
-        display: grid;
-    }
-
-    /* Stats inside sidebar */
-    .mini-stats {
-        display: flex;
-        flex-direction: column;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        flex-wrap: wrap;
         gap: 0.75rem;
-        padding: 1.25rem;
-        background: #f8fafc;
-        border-radius: 16px;
-        border: 1px solid rgba(0,0,0,0.02);
     }
 
-    .mini-stat-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.85rem;
-    }
-
-    .mini-stat-val {
-        font-weight: 700;
-        color: var(--primary);
-    }
-
-    /* Input Styling override */
     .sidebar-input-group {
         display: flex;
         flex-direction: column;
@@ -144,30 +59,104 @@
     .sidebar-input-group input {
         width: 100%;
         background: #f8fafc;
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid rgba(15, 23, 42, 0.08);
         border-radius: 14px;
-        padding: 0.85rem 1rem;
-        font-size: 0.9rem;
+        padding: 0.9rem 1rem;
+        font-size: 0.95rem;
         outline: none;
-        transition: border-color 0.3s;
+        transition: all 0.2s ease;
     }
 
     .sidebar-input-group input:focus {
         border-color: var(--primary);
         background: white;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
     }
 
     .scan-btn {
         width: 100%;
         justify-content: center;
-        padding: 0.9rem;
-        font-size: 0.9rem;
+        padding: 0.95rem 1rem;
+        font-size: 0.92rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        box-shadow: 0 14px 30px rgba(99, 102, 241, 0.22);
     }
 
-    /* History section */
+    .scan-btn:hover {
+        background: linear-gradient(135deg, #5558e8, #0992cf);
+    }
+
+    .mini-stats {
+        display: grid;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 18px;
+        border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .mini-stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.88rem;
+    }
+
+    .mini-stat-val {
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .filter-menu {
+        display: grid;
+        gap: 0.55rem;
+        margin-top: 0.85rem;
+    }
+
+    .filter-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-weight: 700;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+        border: 1px solid #e5edf7;
+    }
+
+    .filter-item:hover {
+        color: var(--primary);
+        border-color: var(--primary);
+        background: white;
+    }
+
+    .filter-item.active {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 10px 18px rgba(99, 102, 241, 0.18);
+    }
+
+    .count-badge {
+        font-size: 0.75rem;
+        background: rgba(15, 23, 42, 0.08);
+        padding: 2px 8px;
+        border-radius: 999px;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .filter-item.active .count-badge {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
     .history-section {
-        margin-top: auto;
-        padding-top: 1.5rem;
+        padding-top: 1rem;
         border-top: 1px dashed #e2e8f0;
     }
 
@@ -178,148 +167,202 @@
         color: var(--text-muted);
         margin-bottom: 0.75rem;
         display: block;
+        font-weight: 800;
     }
 
     .history-list {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.45rem;
     }
 
     .history-item {
-        font-size: 0.8rem;
+        font-size: 0.84rem;
         color: var(--text-muted);
         text-decoration: none;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding: 0.4rem 0.75rem;
-        border-radius: 8px;
-        transition: background 0.2s;
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        background: #f8fafc;
     }
 
     .history-item:hover {
-        background: #f1f5f9;
+        background: #eef2ff;
         color: var(--primary);
     }
 
-    /* Empty state */
+    .media-scroll-area {
+        overflow-y: auto;
+        padding-right: 0.25rem;
+    }
+
+    .media-grid {
+        display: none;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    .media-grid.active {
+        display: grid;
+    }
+
     .empty-state {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100%;
         color: var(--text-muted);
         text-align: center;
-        padding: 4rem;
+        padding: 2rem;
     }
 
     .empty-state svg {
-        margin-bottom: 1.5rem;
-        opacity: 0.2;
+        display: none;
+    }
+
+    @media (max-width: 1100px) {
+        .scraper-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .scraper-control-panel {
+            position: static;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="scraper-container animate-fade-in">
-    <!-- Left SIDEBAR PANEL -->
-    <div class="scraper-control-panel">
-        <div>
-            <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem;">OctaScraper</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">Extraction multi-médias pro.</p>
-        </div>
-
-        <form id="scrape-form" class="sidebar-input-group">
-            {% csrf_token %}
-            <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
-            
-            <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem;">
-                <input type="checkbox" name="deep_scan" id="deep-scan" style="width: 16px; height: 16px; accent-color: var(--primary);">
-                <label for="deep-scan">Scan profond (20 pages)</label>
-            </div>
-
-            <button type="submit" id="submit-btn" class="scan-btn">
-                <span>Lancer le Scan</span>
-            </button>
-        </form>
-
-        <div class="progress-container" id="progress-container" style="margin: 0; padding: 0; background: transparent; box-shadow: none;">
-            <div class="progress-bar" style="height: 8px;">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-            <p id="status-text" style="font-size: 0.7rem; margin-top: 0.5rem; color: var(--primary); font-weight: 600;">Scraping en cours...</p>
-        </div>
-
-        <div id="stats-panel" style="display: none;">
-            <div class="mini-stats">
-                <div class="mini-stat-item">
-                    <span>Pages</span>
-                    <span class="mini-stat-val" id="stat-pages">0</span>
-                </div>
-                <div class="mini-stat-item">
-                    <span>Sitemap</span>
-                    <span class="mini-stat-val" id="stat-sitemap">—</span>
-                </div>
-                <div class="mini-stat-item">
-                    <span>Média total</span>
-                    <span class="mini-stat-val" id="stat-total">0</span>
-                </div>
-            </div>
-
-            <nav class="filter-menu">
-                <div class="filter-item active" data-target="image-grid">
-                    <span>Images</span>
-                    <span class="count-badge" id="count-images">0</span>
-                </div>
-                <div class="filter-item" data-target="logo-grid">
-                    <span>Logos</span>
-                    <span class="count-badge" id="count-logos">0</span>
-                </div>
-                <div class="filter-item" data-target="video-grid">
-                    <span>Vidéos</span>
-                    <span class="count-badge" id="count-videos">0</span>
-                </div>
-                <div class="filter-item" data-target="icon-grid">
-                    <span>Icônes</span>
-                    <span class="count-badge" id="count-icons">0</span>
-                </div>
-            </nav>
-        </div>
-
-        <div class="history-section">
-            <span class="history-title">Récent</span>
-            <div class="history-list" id="history-list">
-                <!-- Data from localStorage -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Right RESULTS AREA -->
-    <div class="scraper-results-area">
-        <div class="results-header">
+<div class="container animate-fade-in tool-page scraper-page">
+    <section class="tool-hero-card">
+        <div class="tool-badge">🖼️ Extraction média intelligente</div>
+        <div class="tool-hero-grid">
             <div>
-                <span id="current-url-display" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Prêt pour le scan</span>
+                <h1>OctaScrapper</h1>
+                <p class="subtitle">Récupérez images, logos, vidéos et icônes depuis une URL avec export ZIP et détection sans doublons.</p>
+                <div class="tool-feature-list">
+                    <div class="tool-feature-item">Images & logos</div>
+                    <div class="tool-feature-item">Vidéos & icônes</div>
+                    <div class="tool-feature-item">Export ZIP</div>
+                    <div class="tool-feature-item">Scan profond</div>
+                </div>
             </div>
-            <button id="download-all-btn" style="display: none; background: var(--success); padding: 0.6rem 1.5rem; font-size: 0.85rem;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Télécharger (.ZIP)
-            </button>
+            <div class="tool-hero-stats">
+                <div class="hero-stat"><strong>Sans doublons</strong><span>Les médias sont normalisés et filtrés automatiquement.</span></div>
+                <div class="hero-stat"><strong>Scan rapide</strong><span>Mode simple ou profond selon votre besoin.</span></div>
+                <div class="hero-stat"><strong>Export direct</strong><span>Téléchargez tous les assets détectés en ZIP.</span></div>
+            </div>
         </div>
+    </section>
 
-        <div class="media-scroll-area" id="results-view">
-            <div class="empty-state" id="empty-state">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <h3>Aucun résultat</h3>
-                <p>Saisissez une URL à gauche pour commencer l'extraction.</p>
+    <div class="scraper-layout">
+        <aside class="scraper-control-panel">
+            <div>
+                <div class="tool-panel-title">Lancer l'extraction</div>
+                <p class="tool-panel-subtitle">Entrez une URL pour récupérer les médias du site et les exporter ensuite.</p>
             </div>
 
-            <div class="grid active media-grid" id="image-grid"></div>
-            <div class="grid media-grid" id="logo-grid"></div>
-            <div class="grid media-grid" id="video-grid"></div>
-            <div class="grid media-grid" id="icon-grid"></div>
-        </div>
+            <form id="scrape-form" class="sidebar-input-group">
+                {% csrf_token %}
+                <input type="text" name="url" placeholder="https://exemple.com" required id="url-input">
+                
+                <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; color: var(--text-muted); padding: 0.15rem 0.1rem;">
+                    <input type="checkbox" name="deep_scan" id="deep-scan" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                    <label for="deep-scan">Scan profond (20 pages)</label>
+                </div>
+
+                <button type="submit" id="submit-btn" class="scan-btn">
+                    <span>Lancer le scan</span>
+                </button>
+            </form>
+
+            <div class="tool-info-box" style="margin-bottom: 0;">
+                <strong style="display:block; margin-bottom:0.4rem; color: var(--text-main);">Ce qui est extrait</strong>
+                <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.7;">
+                    • Images et logos<br>
+                    • Vidéos et icônes<br>
+                    • Nombre de pages scannées<br>
+                    • Disponibilité du sitemap
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container" style="margin: 0; padding: 0; background: transparent; box-shadow: none;">
+                <div class="progress-bar" style="height: 8px;">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="status-text" style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--primary); font-weight: 700;">Scraping en cours...</p>
+            </div>
+
+            <div id="stats-panel" style="display: none;">
+                <div class="mini-stats">
+                    <div class="mini-stat-item">
+                        <span>Pages</span>
+                        <span class="mini-stat-val" id="stat-pages">0</span>
+                    </div>
+                    <div class="mini-stat-item">
+                        <span>Sitemap</span>
+                        <span class="mini-stat-val" id="stat-sitemap">—</span>
+                    </div>
+                    <div class="mini-stat-item">
+                        <span>Média total</span>
+                        <span class="mini-stat-val" id="stat-total">0</span>
+                    </div>
+                </div>
+
+                <nav class="filter-menu">
+                    <div class="filter-item active" data-target="image-grid">
+                        <span>Images</span>
+                        <span class="count-badge" id="count-images">0</span>
+                    </div>
+                    <div class="filter-item" data-target="logo-grid">
+                        <span>Logos</span>
+                        <span class="count-badge" id="count-logos">0</span>
+                    </div>
+                    <div class="filter-item" data-target="video-grid">
+                        <span>Vidéos</span>
+                        <span class="count-badge" id="count-videos">0</span>
+                    </div>
+                    <div class="filter-item" data-target="icon-grid">
+                        <span>Icônes</span>
+                        <span class="count-badge" id="count-icons">0</span>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="history-section">
+                <span class="history-title">Récent</span>
+                <div class="history-list" id="history-list"></div>
+            </div>
+        </aside>
+
+        <section class="scraper-results-area">
+            <div class="results-header">
+                <div>
+                    <strong style="display:block; color: var(--text-main); margin-bottom: 0.2rem;">Résultats de l'extraction</strong>
+                    <span id="current-url-display" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Prêt pour le scan</span>
+                </div>
+                <button id="download-all-btn" style="display: none; background: var(--success); padding: 0.7rem 1.2rem; font-size: 0.85rem; border-radius: 14px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Télécharger (.ZIP)
+                </button>
+            </div>
+
+            <div class="tool-results-card media-scroll-area" id="results-view">
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <h3>Aucun résultat</h3>
+                    <p>Saisissez une URL à gauche pour commencer l'extraction.</p>
+                </div>
+
+                <div class="grid active media-grid" id="image-grid"></div>
+                <div class="grid media-grid" id="logo-grid"></div>
+                <div class="grid media-grid" id="video-grid"></div>
+                <div class="grid media-grid" id="icon-grid"></div>
+            </div>
+        </section>
     </div>
 </div>
 {% endblock %}

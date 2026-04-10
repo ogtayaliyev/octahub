@@ -121,6 +121,35 @@
             transform: translateY(-5px);
         }
 
+        .top-nav-link {
+            position: relative;
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding-bottom: 0.2rem;
+            transition: color 0.2s ease;
+        }
+        .top-nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.25s ease;
+            border-radius: 999px;
+        }
+        .top-nav-link:hover {
+            color: #0f172a;
+        }
+        .top-nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
         .features-section {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
@@ -199,8 +228,9 @@
                 <div class="logo-octagon">O</div>
                 <h2 style="font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin:0;">OctaHub</h2>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <a href="{% url 'info' %}" style="text-decoration: none; color: #64748b; font-weight: 600; font-size: 0.95rem; margin-right: 1.5rem;">Comment ça marche ?</a>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                <a href="{% url 'info' %}" class="top-nav-link">Comment ça marche ?</a>
+                <a href="{% url 'feedback_index' %}" class="top-nav-link">Partager une idée</a>
                 <a href="{% url 'login' %}" style="text-decoration: none; color: #0f172a; font-weight: 600; padding: 0.75rem 1.5rem;">Connexion</a>
                 <a href="{% url 'signup' %}" style="text-decoration: none; background: #0f172a; color: white; padding: 0.75rem 1.5rem; border-radius: 100px; font-weight: 600; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">S'inscrire</a>
             </div>
@@ -328,7 +358,7 @@
         </section>
 
         <footer style="text-align: center; padding: 4rem 0; border-top: 1px solid #e2e8f0; margin-top: 5rem; color: var(--text-muted);">
-            <p>© 2026 OctaHub - <a href="{% url 'terms' %}" style="color: var(--primary); text-decoration: none; margin: 0 0.5rem;">Conditions d'utilisation</a> • <a href="{% url 'privacy' %}" style="color: var(--primary); text-decoration: none; margin: 0 0.5rem;">Politique de confidentialité</a></p>
+            <p>© 2026 OctaHub - <a href="{% url 'terms' %}" style="color: var(--primary); text-decoration: none; margin: 0 0.5rem;">Conditions d'utilisation</a> • <a href="{% url 'privacy' %}" style="color: var(--primary); text-decoration: none; margin: 0 0.5rem;">Politique de confidentialité</a> • <a href="{% url 'feedback_index' %}" style="color: var(--primary); text-decoration: none; margin: 0 0.5rem;">Partager une idée</a></p>
             <p style="font-size: 0.85rem; margin-top: 1rem;">OctaHub ne porte aucune responsabilité quant à l'utilisation des contenus récupérés via ses outils.</p>
         </footer>
     </div>
