@@ -1,94 +1,543 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}OctaKeywords | Générateur de Mots-Clés Intelligent{% endblock %}
+{% block title %}OctaKeywords | Recherche de Mots-Clés Pro{% endblock %}
 
 {% block extra_css %}
 <style>
+    * { box-sizing: border-box; }
+
+    :root {
+        --gradient-primary: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        --gradient-light: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
+        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    .kw-hero {
+        text-align: center;
+        margin-bottom: 3.5rem;
+        padding: 2.5rem 0;
+    }
+    
+    .kw-hero h1 {
+        font-size: 3.5rem;
+        font-weight: 900;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
+    }
+
+    .kw-hero .subtitle {
+        color: #475569;
+        font-size: 1.2rem;
+        font-weight: 500;
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.7;
+    }
+
     .kw-form-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
+        grid-template-columns: 420px 1fr;
+        gap: 2.5rem;
         margin-top: 2rem;
     }
+
     .kw-card {
         background: #ffffff;
         border-radius: 20px;
         padding: 2.5rem;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 2px solid #f1f5f9;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
     }
+
+    .kw-card:hover {
+        box-shadow: var(--shadow-lg);
+        border-color: #e2e8f0;
+    }
+
     .form-group {
         margin-bottom: 1.5rem;
     }
+
     .form-group label {
         display: block;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--text-main);
+        font-weight: 700;
+        margin-bottom: 0.7rem;
+        color: #1e293b;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
+
     .form-group input, .form-group select, .form-group textarea {
         width: 100%;
-        padding: 0.75rem 1rem;
+        padding: 0.95rem 1.1rem;
         border-radius: 12px;
         border: 2px solid #e2e8f0;
         background: #f8fafc;
+        color: #0f172a;
+        font-size: 0.95rem;
+        font-family: inherit;
         outline: none;
-        transition: all 0.2s;
+        transition: all 0.3s ease;
     }
+
+    .form-group input:hover, .form-group select:hover, .form-group textarea:hover {
+        border-color: #cbd5e1;
+        background: #ffffff;
+    }
+
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-        border-color: var(--primary);
-        background: #fff;
+        border-color: #0f172a;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
     }
-    .results-card {
-        background: #f8fafc;
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px dashed #cbd5e1;
+
+    .form-group input::placeholder, .form-group textarea::placeholder {
+        color: #94a3b8;
     }
-    .kw-tag {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background: white;
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 90px;
+        line-height: 1.6;
+    }
+
+    #submit-btn {
+        background: var(--gradient-primary);
+        color: white;
+        width: 100%;
+        padding: 1.1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.7rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.3);
+    }
+
+    #submit-btn:hover {
+        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4);
+    }
+
+    #submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .keyword-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid #f1f5f9;
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-bottom: 1.25rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .keyword-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .keyword-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+    }
+
+    .keyword-card:hover::before {
+        opacity: 1;
+    }
+
+    .keyword-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+    }
+
+    .keyword-text {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    .keyword-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.15rem;
+        font-size: 0.85rem;
+        margin-top: 1.25rem;
+    }
+
+    .metric-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 0.75rem 1rem;
+        background: var(--gradient-light);
+        border-radius: 10px;
         border: 1px solid #e2e8f0;
-        border-radius: 100px;
-        margin: 0.25rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--primary);
     }
+
+    .metric-label {
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .intent-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.4rem 0.9rem;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        white-space: nowrap;
+    }
+
+    .intent-transactional { 
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    .intent-commercial { 
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+    .intent-informational { 
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .difficulty-badge { 
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.8rem;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+    }
+    .difficulty-facile { 
+        background: #d1fae5;
+        color: #065f46;
+        border: 2px solid #6ee7b7;
+    }
+    .difficulty-moyen { 
+        background: #fef08a;
+        color: #854d0e;
+        border: 2px solid #fde047;
+    }
+    .difficulty-difficile { 
+        background: #fecaca;
+        color: #991b1b;
+        border: 2px solid #f87171;
+    }
+
+    .tabs-container {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        border-bottom: 3px solid #f1f5f9;
+        padding-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 0.7rem 1.3rem;
+        background: transparent;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border-radius: 10px;
+        transition: all 0.25s ease;
+        position: relative;
+    }
+
+    .tab-btn:hover {
+        background: #f8fafc;
+        color: #1e293b;
+    }
+
+    .tab-btn.active {
+        background: var(--gradient-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .stat-box {
+        background: var(--gradient-light);
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.75rem 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+        border-color: #cbd5e1;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+
+    .stat-value {
+        font-size: 2.75rem;
+        font-weight: 900;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        line-height: 1.3;
+    }
+
     .strategy-box {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-left: 5px solid #0f172a;
+        border-radius: 16px;
+        padding: 2.25rem;
+        margin-top: 2.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .strategy-box h4 {
+        color: #0f172a;
+        font-weight: 800;
+        margin-bottom: 1.25rem;
+        font-size: 1.2rem;
+        letter-spacing: -0.3px;
+    }
+
+    .strategy-box p {
+        color: #334155;
+        line-height: 1.8;
+        font-size: 0.95rem;
+    }
+
+    .export-btn {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid #cbd5e1;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .export-btn:hover {
+        border-color: #0f172a;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .relevance-bar {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
         margin-top: 1.5rem;
-        padding: 1rem;
-        background: rgba(99, 102, 241, 0.05);
-        border-left: 4px solid var(--primary);
-        font-size: 0.9rem;
-        line-height: 1.5;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    .relevance-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        border-radius: 10px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+
+    /* Custom scrollbar */
+    #keywords-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #keywords-list::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    #keywords-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    #keywords-list::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    @media (max-width: 1280px) {
+        .kw-form-container {
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .kw-form-container {
+            grid-template-columns: 1fr;
+        }
+
+        .kw-hero h1 {
+            font-size: 2.75rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .kw-hero h1 {
+            font-size: 2.25rem;
+        }
+
+        .kw-hero .subtitle {
+            font-size: 1rem;
+        }
+
+        .kw-card {
+            padding: 1.75rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tabs-container {
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            padding: 0.55rem 0.95rem;
+            font-size: 0.8rem;
+        }
+
+        .keyword-card {
+            padding: 1.25rem;
+        }
+
+        .keyword-text {
+            font-size: 1.05rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container animate-fade-in" style="max-width: 100%; margin: 0;">
-    <h1>OctaKeywords</h1>
-    <p class="subtitle">Générez une stratégie sémantique basée sur votre secteur et votre localisation.</p>
+<div class="container animate-fade-in" style="max-width: 1200px; margin: 0 auto;">
+    <div class="kw-hero">
+        <h1>OctaKeywords</h1>
+        <p class="subtitle">Outil de recherche de mots-clés et analyse sémantique professionnelle</p>
+    </div>
 
     <div class="kw-form-container">
+        <!-- Form -->
         <div class="kw-card">
+            <h3 style="margin-bottom: 2.25rem; font-size: 1.15rem; color: #0f172a; font-weight: 800; letter-spacing: -0.3px;">
+                🔍 Configuration de la recherche
+            </h3>
             <form id="keywords-form">
                 {% csrf_token %}
                 <div class="form-group">
                     <label>Secteur d'activité</label>
-                    <input type="text" name="activity" placeholder="ex: Plomberie, Restaurant, SaaS" required>
+                    <input type="text" name="activity" placeholder="ex: Plomberie, Restaurant, SaaS, Marketing" required>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label>Pays</label>
-                        <input type="text" name="country" placeholder="ex: France" required>
+                        <select name="country" required>
+                            <option value="France">France</option>
+                            <option value="Belgique">Belgique</option>
+                            <option value="Suisse">Suisse</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Maroc">Maroc</option>
+                            <option value="Algérie">Algérie</option>
+                            <option value="Tunisie">Tunisie</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Région / Ville</label>
-                        <input type="text" name="region" placeholder="ex: Paris, Lyon">
+                        <input type="text" name="region" placeholder="ex: Paris, Lyon, Marseille">
                     </div>
                 </div>
                 <div class="form-group">
@@ -98,33 +547,49 @@
                         <option value="E-commerce">Boutique en ligne (E-commerce)</option>
                         <option value="Blog">Blog / Média</option>
                         <option value="Portfolio">Portfolio</option>
+                        <option value="SaaS">Application SaaS</option>
+                        <option value="Services">Services Professionnels</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Description du site</label>
-                    <textarea name="description" rows="4" placeholder="Décrivez en quelques mots ce que vous proposez..."></textarea>
+                    <label>Description du projet</label>
+                    <textarea name="description" rows="3" placeholder="Décrivez votre activité et vos objectifs SEO..."></textarea>
                 </div>
                 <button type="submit" id="submit-btn" style="width: 100%; justify-content: center;">
-                    Générer la stratégie
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Rechercher les mots-clés
                 </button>
             </form>
         </div>
 
-        <div class="kw-card" id="results-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-muted);">
-            <div id="placeholder-text">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; opacity: 0.3;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14.7 8.38 8.38 0 0 1 3.8.9L21 3.5v8z"/></svg>
-                <p>Remplissez le formulaire pour voir vos mots-clés.</p>
+        <!-- Results -->
+        <div class="kw-card" id="results-area" style="min-height: 550px; background: transparent; border: none; box-shadow: none; padding: 0;">
+            <div id="placeholder-text" style="text-align: center; margin-top: 6rem; color: #94a3b8;">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 2rem; opacity: 0.3; display: block;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <p style="font-size: 1.05rem; line-height: 1.6;">Configurez les paramètres et lancez l'analyse<br>pour afficher les résultats</p>
             </div>
             
             <div id="actual-results" style="display: none; width: 100%;">
-                <h3 style="color: var(--text-main); margin-bottom: 1.5rem;">Mots-clés suggérés</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3 style="color: #0f172a; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px;">📊 Résultats de l'analyse</h3>
+                    <button class="export-btn" id="export-csv">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Exporter CSV
+                    </button>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="stats-grid" id="stats-grid"></div>
                 
-                <p style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Principaux</p>
-                <div id="main-keywords" style="margin-bottom: 2rem;"></div>
-
-                <p style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Longue Traîne</p>
-                <div id="long-tail-keywords"></div>
-
+                <!-- Category Tabs -->
+                <div class="tabs-container" id="tabs-container"></div>
+                
+                <!-- Keywords List -->
+                <div id="keywords-list" style="max-height: 650px; overflow-y: auto; padding-right: 0.75rem; scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;">
+                    <!-- Keywords will be inserted here -->
+                </div>
+                
+                <!-- Strategy Box -->
                 <div class="strategy-box" id="strategy-text"></div>
             </div>
         </div>
@@ -139,11 +604,14 @@
     const resultsArea = document.getElementById('results-area');
     const placeholder = document.getElementById('placeholder-text');
     const actualResults = document.getElementById('actual-results');
+    
+    let allKeywordsData = [];
+    let currentCategory = 'all';
 
     form.onsubmit = async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
-        submitBtn.innerText = 'Analyse en cours...';
+        submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analyse en cours...';
 
         const formData = new FormData(form);
         try {
@@ -155,21 +623,144 @@
             const data = await response.json();
             
             if (response.ok) {
-                placeholder.style.display = 'none';
-                actualResults.style.display = 'block';
-                resultsArea.style.justifyContent = 'flex-start';
-                resultsArea.style.alignItems = 'flex-start';
-
-                document.getElementById('main-keywords').innerHTML = data.main.map(kw => `<span class="kw-tag">${kw}</span>`).join('');
-                document.getElementById('long-tail-keywords').innerHTML = data.long_tail.map(kw => `<span class="kw-tag" style="color: var(--accent);">${kw}</span>`).join('');
-                document.getElementById('strategy-text').innerText = data.strategy;
+                allKeywordsData = data.keywords;
+                displayResults(data);
+            } else {
+                alert(data.error || 'Erreur lors de la génération');
             }
         } catch (err) {
-            alert('Erreur lors de la génération');
+            alert('Erreur réseau : ' + err.message);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerText = 'Générer la stratégie';
+            submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Rechercher les mots-clés';
         }
     };
+    
+    function displayResults(data) {
+        placeholder.style.display = 'none';
+        actualResults.style.display = 'block';
+        resultsArea.style.justifyContent = 'flex-start';
+        resultsArea.style.alignItems = 'flex-start';
+        
+        // Stats
+        const statsGrid = document.getElementById('stats-grid');
+        statsGrid.innerHTML = `
+            <div class="stat-box">
+                <div class="stat-value">${data.stats.total}</div>
+                <div class="stat-label">Mots-clés trouvés</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" style="color: var(--success)">${data.stats.high_priority}</div>
+                <div class="stat-label">Haute priorité</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" style="color: var(--accent)">${data.stats.quick_wins}</div>
+                <div class="stat-label">Quick wins</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" style="color: var(--warning)">${data.stats.long_term}</div>
+                <div class="stat-label">Long terme</div>
+            </div>
+        `;
+        
+        // Tabs
+        const tabsContainer = document.getElementById('tabs-container');
+        const categories = [
+            { id: 'all', label: 'Global', count: data.keywords.length },
+            { id: 'high_priority', label: 'Prioritaires', count: data.categories.high_priority.length },
+            { id: 'quick_wins', label: 'Quick Wins', count: data.categories.quick_wins.length },
+            { id: 'transactional', label: 'Transactionnels', count: data.categories.transactional.length },
+            { id: 'informational', label: 'Informationnels', count: data.categories.informational.length },
+        ];
+        
+        tabsContainer.innerHTML = categories.map(cat => 
+            `<button class="tab-btn ${cat.id === 'all' ? 'active' : ''}" data-category="${cat.id}">
+                ${cat.label}
+            </button>`
+        ).join('');
+        
+        // Tab click handlers
+        tabsContainer.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const category = btn.dataset.category;
+                currentCategory = category;
+                
+                let keywordsToShow = [];
+                if (category === 'all') {
+                    keywordsToShow = data.keywords;
+                } else {
+                    keywordsToShow = data.categories[category] || [];
+                }
+                displayKeywords(keywordsToShow);
+            });
+        });
+        
+        // Display all keywords initially
+        displayKeywords(data.keywords);
+        
+        // Strategy
+        document.getElementById('strategy-text').innerHTML = data.strategy;
+        
+        // Export CSV handler
+        document.getElementById('export-csv').onclick = () => exportToCSV(data.keywords);
+    }
+    
+    function displayKeywords(keywords) {
+        const list = document.getElementById('keywords-list');
+        list.innerHTML = keywords.map(kw => `
+            <div class="keyword-card">
+                <div class="keyword-header">
+                    <div class="keyword-text">${kw.keyword}</div>
+                    <span class="intent-badge intent-${kw.intent}">${kw.intent}</span>
+                </div>
+                <div class="keyword-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Difficulté</span>
+                        <span class="difficulty-badge difficulty-${kw.difficulty}">${kw.difficulty}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Volume estimé</span>
+                        <span class="metric-value">${kw.volume_estimate}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Nb mots</span>
+                        <span class="metric-value">${kw.word_count}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Pertinence</span>
+                        <span class="metric-value">${kw.relevance}/100</span>
+                    </div>
+                </div>
+                <div class="relevance-bar">
+                    <div class="relevance-fill" style="width: ${kw.relevance}%"></div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function exportToCSV(keywords) {
+        const headers = ['Mot-clé', 'Intent', 'Difficulté', 'Volume', 'Pertinence', 'Nb Mots'];
+        const rows = keywords.map(kw => [
+            kw.keyword,
+            kw.intent,
+            kw.difficulty,
+            kw.volume_estimate,
+            kw.relevance,
+            kw.word_count
+        ]);
+        
+        let csv = headers.join(',') + '\n';
+        rows.forEach(row => {
+            csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'octakeywords_export.csv';
+        link.click();
+    }
 </script>
 {% endblock %}

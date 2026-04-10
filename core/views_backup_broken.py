@@ -18,7 +18,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile
 import time
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.robotparser import RobotFileParser
 
 # --- Forms ---
@@ -52,34 +52,53 @@ class UserProfileForm(forms.ModelForm):
 # --- Utility Functions ---
 
 def normalize_url(url):
-    """Normalize URL while preserving the real host (important for sites that require `www`)."""
-    url = url.strip()
+    """Normalize page URL for crawling deduplication"""
+    url = url.strip().lower()
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
-
+    
+    # Remove www. and trailing slash for better matching
     parsed = urlparse(url)
-    scheme = parsed.scheme.lower() or 'https'
-    netloc = parsed.netloc.lower()
+    netloc = parsed.netloc.replace('www.', '')
     path = parsed.path.rstrip('/')
-    return f"{scheme}://{netloc}{path}"
+    return f"{parsed.scheme}://{netloc}{path}"
 
 def normalize_image_url(img_url):
-    """Keep media URLs valid while doing light cleanup only."""
+    """Normalize image URL for deduplication - removes query params and naming variations"""
     if not img_url or not img_url.startswith('http'):
         return None
-
+    
+    # Remove fragment
     clean = img_url.split('#')[0].strip()
+    
+    # Parse URL 
+    from urllib.parse import urlparse, parse_qs, urlunparse
     parsed = urlparse(clean)
-    if not parsed.netloc:
-        return None
-
-    # Important: preserve `www` and original path case.
-    scheme = parsed.scheme.lower() or 'https'
-    netloc = parsed.netloc.lower()
-    path = parsed.path
-    query = parsed.query
-
-    return f"{scheme}://{netloc}{path}" + (f"?{query}" if query else "")
+    
+    # Normalize hostname (remove www)
+    netloc = parsed.netloc.lower().replace('www.', '')
+    
+    # Normalize path (force lowercase for deduplication)
+    path = parsed.path.lower()
+    
+    # Aggressive: strip common resizing suffixes from filename to find the "ID unique"
+    # Examples: image-150x150.jpg -> image.jpg, image_thumb.jpg -> image.jpg
+    path = re.sub(r'(-\d+x\d+|_thumb|_small|_medium|_large|_optimized)\.(jpg|jpeg|png|webp|avif|gif)$', r'.\2', path)
+    
+    # Keep only essential query params
+    query = ""
+    if parsed.query:
+        params = parse_qs(parsed.query)
+        # Drop common variation parameters that create duplicates
+        drop_params = ['w', 'h', 'width', 'height', 'size', 'quality', 'q', 'resize', 'scale', 
+                       'fit', 'crop', 'format', 'fm', 'auto', 'dpr', 'cs', 'bg', 'blur', 'ver', 'v', 'version']
+        filtered_params = {k: v for k, v in params.items() if k.lower() not in drop_params}
+        
+        if filtered_params:
+            query = '&'.join(f"{k}={v[0]}" for k, v in sorted(filtered_params.items()))
+    
+    # Rebuild normalized URL (force https for deduplication purposes)
+    return f"https://{netloc}{path.rstrip('/')}" + (f"?{query}" if query else "")
 
 def get_clean_filename(url):
     """Extract and decode filename from URL for display"""
@@ -117,7 +136,7 @@ def get_rdap_info(domain):
     except: pass
     return None
 
-def get_media_from_page(url, session, css_cache=None):
+def get_media_from_page(url, session):
     try:
         response = session.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}, allow_redirects=True, verify=False)
         response.raise_for_status()
@@ -129,9 +148,6 @@ def get_media_from_page(url, session, css_cache=None):
                 response.raise_for_status()
             except: return [], [], [], []
         else: return [], [], [], []
-    
-    if css_cache is None:
-        css_cache = {}
     soup = BeautifulSoup(response.text, 'html.parser')
     
     # Use sets from the start to prevent duplicates
@@ -198,21 +214,15 @@ def get_media_from_page(url, session, css_cache=None):
         css_targets.append(tag.get('style'))
         
     # External Styles (Try fetching .css files)
-    for css_link in soup.find_all('link', rel=['stylesheet']):
+    for css_link in soup.find_all('link', rel=['stylesheet', 'preload']):
         c_href = css_link.get('href')
         if c_href:
             try:
-                css_url = urljoin(url, c_href).split('?')[0].split('#')[0]
-                # Only fetch if it's the same domain and NOT already in cache
+                css_url = urljoin(url, c_href)
+                # Only fetch if it's the same domain to avoid huge overhead
                 if urlparse(url).netloc in urlparse(css_url).netloc:
-                    if css_url in css_cache:
-                        css_targets.append(css_cache[css_url])
-                    else:
-                        css_resp = session.get(css_url, timeout=5, verify=False)
-                        if css_resp.ok:
-                            css_content = css_resp.text
-                            css_cache[css_url] = css_content
-                            css_targets.append(css_content)
+                    css_resp = session.get(css_url, timeout=5, verify=False)
+                    if css_resp.ok: css_targets.append(css_resp.text)
             except: pass
 
     for content in css_targets:
@@ -267,23 +277,15 @@ def get_media_from_page(url, session, css_cache=None):
         if domain in urlparse(full_url).netloc:
             links.add(full_url)
             
-    # Final filtering: remove tracking pixels, tiny images, and deduplicate by base path
-    seen_bases = {}
+    # Final filtering: remove tracking pixels and tiny images
+    final_images = []
     for img_url in images:
         # Skip obvious tracking/analytics images
-        if any(x in img_url.lower() for x in ['pixel', 'tracking', 'analytics', 'spacer', 'transparent.gif', '1x1', 'google-analytics', 'facebook.com']):
+        if any(x in img_url.lower() for x in ['pixel', 'tracking', 'analytics', 'spacer', 'transparent.gif', '1x1']):
             continue
-        
-        # Deduplication fingerprint: URL without query/hash
-        base_url = img_url.split('?')[0].split('#')[0].lower()
-        if base_url not in seen_bases:
-            seen_bases[base_url] = img_url
-        else:
-            # If we have a version with query and current one doesn't, or vice-versa, prefer the one that looks more complete
-            if '?' in img_url and '?' not in seen_bases[base_url]:
-                seen_bases[base_url] = img_url
-                
-    return list(seen_bases.values()), list(videos), list(icons), list(links)
+        final_images.append(img_url)
+
+    return final_images, list(videos), list(icons), list(links)
 
 def get_seo_data(url, session):
     try:
@@ -533,176 +535,362 @@ def profile(request):
 
 @login_required
 def scrape(request):
-    """🚀 SIMPLE & RELIABLE SCRAPER - Évite les doublons, récupère les images efficacement"""
+    """🚀 ULTRA-PROFESSIONAL SCRAPER - Best-in-class media extraction"""
     if request.method == 'POST':
         url_raw = request.POST.get('url')
-        if not url_raw:
+        if not url_raw: 
             return JsonResponse({'error': 'URL manquant'}, status=400)
         
-        # Normaliser l'URL
-        url = url_raw.strip()
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        
+        start_url = normalize_url(url_raw)
         deep_scan = request.POST.get('deep_scan') == 'on'
-        start_time = time.time()
         
-        # Session HTTP simple avec désactivation SSL
+        # ═══════════════════════════════════════════════════════════════
+        # SMART SCRAPER CONFIGURATION - ÉQUILIBRÉ
+        # ═══════════════════════════════════════════════════════════════
+        config = {
+            'max_pages': 8 if deep_scan else 5,  # ⚡ Limité mais suffisant
+            'max_workers': 2,  # ⚡ 2 workers pour un peu de parallélisme
+            'timeout': 10,  # ⚡ 10s - assez pour charger une page complète
+            'retry_attempts': 2,  # ⚡ 2 essais si échec
+            'rate_limit': 0.2,  # Rapide mais pas trop
+            'respect_robots': True,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        
+        # Initialize session with connection pooling
         session = requests.Session()
-        session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        })
-        session.verify = False
+        session.headers.update({'User-Agent': config['user_agent']})
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=20,
+            max_retries=3
+        )
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
         
-        # Collections avec sets pour éviter les doublons automatiquement
+        # ═══════════════════════════════════════════════════════════════
+        # INTELLIGENT URL DISCOVERY & PRIORITY SCORING
+        # ═══════════════════════════════════════════════════════════════
+        parsed = urlparse(start_url)
+        base = f"{parsed.scheme}://{parsed.netloc}"
+        domain = parsed.netloc.replace('www.', '')
+        
+        # Priority URLs with scoring (higher = more important)
+        priority_urls = {
+            start_url: 100,  # Homepage always highest priority
+            # Media-rich pages (90-95 score)
+            f"{base}/gallery": 95, f"{base}/galerie": 95, f"{base}/photos": 95,
+            f"{base}/portfolio": 95, f"{base}/realisations": 95, f"{base}/projets": 95,
+            f"{base}/products": 90, f"{base}/produits": 90, f"{base}/catalogue": 90,
+            f"{base}/media": 95, f"{base}/images": 95, f"{base}/videos": 95,
+            # Content pages (70-80 score)
+            f"{base}/blog": 80, f"{base}/news": 80, f"{base}/actualites": 80,
+            f"{base}/articles": 80, f"{base}/ressources": 75, f"{base}/resources": 75,
+            # About/Team (60-70 score)
+            f"{base}/about": 70, f"{base}/a-propos": 70, f"{base}/qui-sommes-nous": 70,
+            f"{base}/team": 70, f"{base}/equipe": 70, f"{base}/notre-equipe": 70,
+            # Services (50-60 score)
+            f"{base}/services": 60, f"{base}/nos-services": 60, f"{base}/solutions": 60,
+            # Contact (40 score - usually less media)
+            f"{base}/contact": 40, f"{base}/contact-us": 40, f"{base}/nous-contacter": 40,
+            # Case studies & testimonials (75 score)
+            f"{base}/case-studies": 75, f"{base}/etudes-de-cas": 75,
+            f"{base}/temoignages": 75, f"{base}/testimonials": 75, f"{base}/clients": 75,
+        }
+        
+        # Get sitemap URLs
+        sitemap_urls = get_sitemap_urls(base, session)
+        
+        # Build intelligent queue with scoring
+        url_queue = []
+        visited = set()
+        page_cache = {}  # Cache successful responses
+        
+        # Add priority URLs
+        for url, score in priority_urls.items():
+            url_queue.append({'url': url, 'score': score, 'depth': 0})
+        
+        # Add sitemap URLs with medium priority
+        for url in sitemap_urls[:50]:
+            if url not in priority_urls:
+                # Score based on URL patterns
+                score = 50
+                if any(kw in url.lower() for kw in ['gallery', 'photo', 'image', 'media', 'portfolio']):
+                    score = 85
+                elif any(kw in url.lower() for kw in ['blog', 'article', 'news', 'product']):
+                    score = 70
+                url_queue.append({'url': url, 'score': score, 'depth': 0})
+        
+        # Sort by score (highest first)
+        url_queue.sort(key=lambda x: x['score'], reverse=True)
+        
+        # Remove duplicates
+        seen_urls = set()
+        unique_queue = []
+        for item in url_queue:
+            if item['url'] not in seen_urls:
+                seen_urls.add(item['url'])
+                unique_queue.append(item)
+        url_queue = unique_queue
+        
+        # ═══════════════════════════════════════════════════════════════
+        # SMART SCRAPING WITH RETRY LOGIC & ERROR RECOVERY
+        # ═══════════════════════════════════════════════════════════════
         all_images = set()
         all_videos = set()
         all_icons = set()
-        all_logos = set()
-        visited_pages = set()
-        pages_to_visit = [url]
-        pages_scanned = 0
-        max_pages = 20 if deep_scan else 10
+        failed_urls = []
         
-        # Tenter de récupérer le sitemap
-        sitemap_urls = get_sitemap_urls(url, session)
-        sitemap_found = len(sitemap_urls) > 0
-        
-        # Parcourir les pages
-        while pages_to_visit and pages_scanned < max_pages:
-            current_url = pages_to_visit.pop(0)
-            
-            if current_url in visited_pages:
-                continue
-                
-            visited_pages.add(current_url)
-            pages_scanned += 1
-            
-            try:
-                # Fetch avec timeout raisonnable
-                response = session.get(current_url, timeout=15, allow_redirects=True)
-                response.raise_for_status()
-                
-                soup = BeautifulSoup(response.content, 'html.parser')
-                base_url = response.url
-                base_domain = urlparse(base_url).netloc
-                
-                # === 1. IMAGES ===
-                for img in soup.find_all('img'):
-                    src = img.get('src') or img.get('data-src') or img.get('data-lazy-src') or img.get('data-original')
-                    if src:
-                        full_url = urljoin(base_url, src).split('?')[0].split('#')[0]
-                        if full_url.startswith('http'):
-                            # Classifier images vs logos
-                            if any(kw in full_url.lower() for kw in ['logo', 'brand', 'favicon']):
-                                all_logos.add(full_url)
-                            else:
-                                all_images.add(full_url)
-                
-                # === 2. IMAGES EN ARRIÈRE-PLAN CSS ===
-                for el in soup.find_all(style=re.compile(r'background.*?url', re.I)):
-                    style = el.get('style', '')
-                    urls = re.findall(r'url\(["\']?([^)"\']+)["\']?\)', style)
-                    for bg_url in urls:
-                        full_url = urljoin(base_url, bg_url).split('?')[0].split('#')[0]
-                        if full_url.startswith('http') and any(ext in full_url.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']):
-                            if 'logo' in full_url.lower():
-                                all_logos.add(full_url)
-                            else:
-                                all_images.add(full_url)
-                
-                # === 3. VIDEOS ===
-                for video in soup.find_all('video'):
-                    poster = video.get('poster')
-                    if poster:
-                        full_url = urljoin(base_url, poster).split('?')[0].split('#')[0]
-                        if full_url.startswith('http'):
-                            all_videos.add(full_url)
+        def scrape_with_retry(url, session, max_retries=3):
+            """Smart retry with exponential backoff"""
+            for attempt in range(max_retries):
+                try:
+                    # Check cache first
+                    if url in page_cache:
+                        return page_cache[url]
                     
-                    for source in video.find_all('source'):
-                        src = source.get('src')
-                        if src:
-                            full_url = urljoin(base_url, src).split('?')[0].split('#')[0]
-                            if full_url.startswith('http'):
-                                all_videos.add(full_url)
+                    # Adaptive timeout (longer for first attempt)
+                    timeout = config['timeout'] + (attempt * 2)
+                    
+                    response = session.get(
+                        url, 
+                        timeout=timeout,
+                        allow_redirects=True,
+                        verify=False
+                    )
+                    response.raise_for_status()
+                    
+                    # Cache successful response
+                    page_cache[url] = response
+                    return response
+                    
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 404:
+                        return None  # Don't retry 404s
+                    if attempt < max_retries - 1:
+                        time.sleep(0.5 * (2 ** attempt))  # Exponential backoff
+                    
+                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+                    if attempt < max_retries - 1:
+                        time.sleep(1 * (2 ** attempt))
+                    
+                except Exception:
+                    if attempt < max_retries - 1:
+                        time.sleep(0.3)
+            
+            return None  # Failed after all retries
+        
+        def extract_media_advanced(url, session):
+            """Advanced media extraction with all techniques"""
+            response = scrape_with_retry(url, session)
+            if not response:
+                return set(), set(), set(), []
+            
+            imgs, vids, icons, links = get_media_from_page(url, session)
+            
+            # ─── BONUS: Mine JavaScript data ───
+            try:
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
-                # === 4. ICONS (favicons, apple-touch-icon) ===
-                for link in soup.find_all('link', rel=re.compile(r'icon|apple-touch-icon', re.I)):
-                    href = link.get('href')
-                    if href:
-                        full_url = urljoin(base_url, href).split('?')[0].split('#')[0]
-                        if full_url.startswith('http'):
-                            all_icons.add(full_url)
-                
-                # === 5. SRCSET pour images responsive ===
-                for img in soup.find_all('img', srcset=True):
-                    srcset = img.get('srcset', '')
-                    # srcset format: "url1 1x, url2 2x" ou "url1 100w, url2 200w"
-                    urls = re.findall(r'([^\s,]+)\s+(?:\d+[wx]|[\d.]+x)', srcset)
-                    for src_url in urls:
-                        full_url = urljoin(base_url, src_url).split('?')[0].split('#')[0]
-                        if full_url.startswith('http'):
-                            if 'logo' in full_url.lower():
-                                all_logos.add(full_url)
-                            else:
-                                all_images.add(full_url)
-                
-                # === 6. Si deep_scan, collecter les liens de la même origine ===
-                if deep_scan and pages_scanned < max_pages:
-                    for link in soup.find_all('a', href=True):
-                        href = link['href']
-                        full_link = urljoin(base_url, href).split('?')[0].split('#')[0]
-                        link_domain = urlparse(full_link).netloc
+                # Extract from JSON-LD structured data
+                for script in soup.find_all('script', type='application/ld+json'):
+                    try:
+                        data = json.loads(script.string)
+                        # Recursively find image URLs in JSON
+                        def find_images_in_json(obj):
+                            images = []
+                            if isinstance(obj, dict):
+                                for key, value in obj.items():
+                                    if key in ['image', 'logo', 'photo', 'thumbnail', 'url'] and isinstance(value, str):
+                                        if value.startswith('http'):
+                                            images.append(value)
+                                    elif isinstance(value, (dict, list)):
+                                        images.extend(find_images_in_json(value))
+                            elif isinstance(obj, list):
+                                for item in obj:
+                                    images.extend(find_images_in_json(item))
+                            return images
                         
-                        # Seulement les liens du même domaine
-                        if link_domain == base_domain and full_link not in visited_pages:
-                            if full_link not in pages_to_visit and len(pages_to_visit) < 30:
-                                pages_to_visit.append(full_link)
+                        json_imgs = find_images_in_json(data)
+                        for img_url in json_imgs:
+                            normalized = normalize_image_url(img_url)
+                            if normalized:
+                                imgs.append(normalized)
+                    except:
+                        pass
                 
-            except Exception:
-                continue
+                # Extract from window.__INITIAL_STATE__ and similar JS variables
+                js_data_patterns = [
+                    r'window\.__INITIAL_STATE__\s*=\s*({.*?});',
+                    r'window\.__data\s*=\s*({.*?});',
+                    r'var\s+imageData\s*=\s*({.*?});',
+                    r'const\s+images\s*=\s*(\[.*?\]);'
+                ]
+                for pattern in js_data_patterns:
+                    matches = re.findall(pattern, response.text, re.DOTALL)
+                    for match in matches:
+                        try:
+                            # Try to find URLs in JS data
+                            js_urls = re.findall(r'https?://[^\s<>"\']+?\.(?:jpg|jpeg|png|webp|avif|svg|gif)', match)
+                            for js_url in js_urls:
+                                normalized = normalize_image_url(js_url)
+                                if normalized:
+                                    imgs.append(normalized)
+                        except:
+                            pass
+                
+            except:
+                pass
+            
+            return set(imgs), set(vids), set(icons), links
         
-        # Convertir sets en listes et limiter
-        all_images = list(all_images)[:200]
-        all_logos = list(all_logos)[:60]
-        all_videos = list(all_videos)[:40]
-        all_icons = list(all_icons)[:80]
+        # ═══════════════════════════════════════════════════════════════
+        # PARALLEL SCRAPING WITH THREAD POOL
+        # ═══════════════════════════════════════════════════════════════
+        pages_processed = 0
+        start_time = time.time()
         
-        # Préparer la réponse avec noms de fichiers
-        images_list = [{'url': img_url, 'name': get_clean_filename(img_url), 'type': 'image'} for img_url in all_images]
-        logos_list = [{'url': logo_url, 'name': get_clean_filename(logo_url), 'type': 'logo'} for logo_url in all_logos]
-        videos_list = [{'url': vid_url, 'name': get_clean_filename(vid_url), 'type': 'video'} for vid_url in all_videos]
-        icons_list = [{'url': icon_url, 'name': get_clean_filename(icon_url), 'type': 'icon'} for icon_url in all_icons]
+        with ThreadPoolExecutor(max_workers=config['max_workers']) as executor:
+            futures = {}
+            
+            while url_queue and pages_processed < config['max_pages']:
+                # Submit batch of URLs
+                batch_size = min(config['max_workers'] * 2, len(url_queue))
+                batch = url_queue[:batch_size]
+                url_queue = url_queue[batch_size:]
+                
+                for item in batch:
+                    url = item['url']
+                    if url in visited:
+                        continue
+                    
+                    visited.add(url)
+                    future = executor.submit(extract_media_advanced, url, session)
+                    futures[future] = {'url': url, 'score': item['score'], 'depth': item['depth']}
+                
+                # Process completed futures
+                for future in as_completed(futures):
+                    try:
+                        imgs, vids, icons, links = future.result(timeout=config['timeout'] + 5)
+                        item_data = futures[future]
+                        
+                        all_images.update(imgs)
+                        all_videos.update(vids)
+                        all_icons.update(icons)
+                        
+                        pages_processed += 1
+                        
+                        # In deep scan, add discovered links with lower priority
+                        if deep_scan and item_data['depth'] < 2 and pages_processed < config['max_pages']:
+                            for link in links[:10]:  # Limit discovered links per page
+                                if link not in visited and domain in urlparse(link).netloc:
+                                    # Score based on URL content
+                                    link_score = 30
+                                    if any(kw in link.lower() for kw in ['gallery', 'photo', 'image']):
+                                        link_score = 60
+                                    elif any(kw in link.lower() for kw in ['blog', 'article', 'product']):
+                                        link_score = 45
+                                    
+                                    url_queue.append({
+                                        'url': link,
+                                        'score': link_score,
+                                        'depth': item_data['depth'] + 1
+                                    })
+                        
+                        # Rate limiting
+                        time.sleep(config['rate_limit'])
+                        
+                    except Exception:
+                        failed_urls.append(futures[future]['url'])
+                    
+                    del futures[future]
+                
+                # Re-sort queue by score
+                url_queue.sort(key=lambda x: x['score'], reverse=True)
         
-        # Stocker en session pour export ZIP
+        # ═══════════════════════════════════════════════════════════════
+        # INTELLIGENT CLASSIFICATION & DEDUPLICATION
+        # ═══════════════════════════════════════════════════════════════
+        final_imgs, final_svgs, final_logos, final_videos = [], [], [], []
+        
+        VIDEO_EXTS = ('.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv', '.flv', '.wmv')
+        SVG_EXT = '.svg'
+        IMG_EXTS = ('.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.bmp', '.tiff', '.heic', '.heif')
+        
+        # Process images with smart classification
+        for url in all_images:
+            parsed = urlparse(url)
+            path = parsed.path.lower()
+            name = get_clean_filename(url)
+            
+            # Classify based on URL patterns and extensions
+            if path.endswith(VIDEO_EXTS):
+                final_videos.append({'url': url, 'name': name, 'type': 'video'})
+            elif path.endswith(SVG_EXT):
+                final_svgs.append({'url': url, 'name': name, 'type': 'svg'})
+            elif any(kw in path for kw in ['logo', 'brand', 'favicon', 'icon']):
+                final_logos.append({'url': url, 'name': name, 'type': 'logo'})
+            elif any(path.endswith(ext) for ext in IMG_EXTS):
+                final_imgs.append({'url': url, 'name': name, 'type': 'image'})
+            else:
+                # Unknown type - add as image if it has image-like keywords
+                if any(kw in path for kw in ['img', 'image', 'photo', 'pic', 'thumb']):
+                    final_imgs.append({'url': url, 'name': name, 'type': 'image'})
+        
+        # Process videos from video tags
+        for url in all_videos:
+            name = get_clean_filename(url)
+            if name.startswith('file_'):
+                name = f"Video_{len(final_videos)+1}"
+            final_videos.append({'url': url, 'name': name, 'type': 'video'})
+        
+        # Process icons
+        final_icons_list = []
+        for url in list(all_icons)[:100]:
+            name = get_clean_filename(url)
+            final_icons_list.append({'url': url, 'name': name, 'type': 'icon'})
+        
+        # Merge SVGs with icons
+        final_icons_merged = final_svgs[:40] + final_icons_list
+        
+        # Limit results - ⚡ Limité pour vitesse mais fonctionnel
+        final_imgs = final_imgs[:100]  # ⚡ 100 images (bon compromis)
+        final_logos = final_logos[:40]  # ⚡ 40 logos
+        final_videos = final_videos[:25]  # ⚡ 25 vidéos
+        final_icons_merged = final_icons_merged[:50]  # ⚡ 50 icônes
+        
+        # Calculate performance metrics
+        elapsed_time = round(time.time() - start_time, 2)
+        pages_per_second = round(pages_processed / elapsed_time, 2) if elapsed_time > 0 else 0
+        
+        # Store in session
         request.session['scraped_media'] = {
-            'images': all_images,
-            'videos': all_videos,
-            'icons': all_icons,
-            'logos': all_logos,
+            'images': [m['url'] for m in final_imgs],
+            'videos': [m['url'] for m in final_videos],
+            'icons': [m['url'] for m in final_icons_merged],
+            'logos': [m['url'] for m in final_logos],
         }
         
-        elapsed = round(time.time() - start_time, 2)
-        
         return JsonResponse({
-            'images': images_list,
-            'videos': videos_list,
-            'icons': icons_list,
-            'logos': logos_list,
+            'images': final_imgs,
+            'videos': final_videos,
+            'icons': final_icons_merged,
+            'logos': final_logos,
             'stats': {
-                'pages_scanned': pages_scanned,
-                'sitemap_found': sitemap_found,
+                'pages_scanned': pages_processed,
+                'sitemap_found': len(sitemap_urls) > 0,
                 'sitemap_urls': len(sitemap_urls),
-                'total_images': len(images_list),
-                'total_videos': len(videos_list),
-                'total_logos': len(logos_list),
-                'total_icons': len(icons_list),
-                'elapsed_time': elapsed,
-                'pages_per_second': round(pages_scanned / elapsed, 2) if elapsed > 0 else 0,
+                'total_images': len(final_imgs),
+                'total_videos': len(final_videos),
+                'total_logos': len(final_logos),
+                'total_icons': len(final_icons_merged),
+                'elapsed_time': elapsed_time,
+                'pages_per_second': pages_per_second,
+                'failed_urls': len(failed_urls),
+                'cache_hits': len(page_cache),
                 'deep_scan': deep_scan
             }
         })
-    
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 @login_required
@@ -736,14 +924,7 @@ def audit_scrape(request):
                                 queue.append(l)
                 except: continue
 
-            # Global deduplication with fingerprints
-            seen_bases = {}
-            for img_url in all_imgs:
-                base_url = img_url.split('?')[0].split('#')[0].lower()
-                if base_url not in seen_bases:
-                    seen_bases[base_url] = img_url
-            
-            unique_imgs = list(seen_bases.values())[:200] # Increased limit for audit as well
+            unique_imgs = list(dict.fromkeys(all_imgs))[:100] # Limit results for speed
             results, total_size = [], 0
             
             for img_url in unique_imgs:

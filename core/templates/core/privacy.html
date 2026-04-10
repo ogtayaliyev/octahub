@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de Confidentialité | OctaScraper</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: var(--bg-app);
+            padding: 2rem;
+        }
+        .privacy-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        .last-updated {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        h2 {
+            color: var(--text-main);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        p {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--info);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+        }
+        .info-box h3 {
+            color: var(--info);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        ul {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 2rem;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .data-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+        .data-table td {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="privacy-container">
+        <h1>🔒 Politique de Confidentialité</h1>
+        <p class="last-updated">Dernière mise à jour : 10 avril 2026</p>
+
+        <p>
+            Chez OctaHub, nous prenons la protection de vos données personnelles très au sérieux. Cette politique 
+            de confidentialité explique comment nous collectons, utilisons, stockons et protégeons vos informations.
+        </p>
+
+        <h2>1. Données Collectées</h2>
+        <p>
+            Nous collectons les données suivantes lors de votre utilisation d'OctaHub :
+        </p>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Type de Données</th>
+                    <th>Finalité</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Identifiants</strong> (nom d'utilisateur, email, mot de passe)</td>
+                    <td>Création et gestion de compte, authentification</td>
+                </tr>
+                <tr>
+                    <td><strong>Données de profil</strong> (nom, prénom, entreprise)</td>
+                    <td>Personnalisation de l'expérience utilisateur</td>
+                </tr>
+                <tr>
+                    <td><strong>Données d'utilisation</strong> (URLs analysées, exports)</td>
+                    <td>Fourniture du service, historique d'analyse</td>
+                </tr>
+                <tr>
+                    <td><strong>Données techniques</strong> (adresse IP, navigateur, appareil)</td>
+                    <td>Sécurité, statistiques, amélioration du service</td>
+                </tr>
+                <tr>
+                    <td><strong>Cookies de session</strong></td>
+                    <td>Maintien de la connexion, préférences utilisateur</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2. Utilisation des Données</h2>
+        <p>
+            Vos données personnelles sont utilisées uniquement pour :
+        </p>
+        <ul>
+            <li>Fournir et améliorer nos services (OctaScraper, OctaSEO, etc.)</li>
+            <li>Gérer votre compte et authentification</li>
+            <li>Sauvegarder vos préférences et historique d'analyses</li>
+            <li>Assurer la sécurité et prévenir les abus</li>
+            <li>Vous contacter concernant votre compte ou nos services (avec votre consentement)</li>
+            <li>Analyser l'utilisation de la plateforme pour améliorer l'expérience</li>
+        </ul>
+
+        <div class="info-box">
+            <h3>🔐 Engagement de Confidentialité</h3>
+            <p style="color: var(--text-muted);">
+                <strong>Nous ne vendons JAMAIS vos données personnelles à des tiers.</strong> Vos informations 
+                restent strictement confidentielles et ne sont partagées avec aucune entreprise externe à des fins marketing.
+            </p>
+        </div>
+
+        <h2>3. Stockage et Sécurité</h2>
+        <p>
+            <strong>Localisation :</strong> Vos données sont stockées sur des serveurs sécurisés.
+        </p>
+        <p>
+            <strong>Durée de conservation :</strong> Vos données sont conservées tant que votre compte est actif. 
+            Vous pouvez demander la suppression de votre compte à tout moment.
+        </p>
+        <p>
+            <strong>Mesures de sécurité :</strong>
+        </p>
+        <ul>
+            <li>Mots de passe chiffrés avec Django's PBKDF2 algorithm</li>
+            <li>Connexions HTTPS (SSL/TLS) pour toutes les communications</li>
+            <li>Protection CSRF (Cross-Site Request Forgery)</li>
+            <li>Sessions sécurisées avec expiration automatique</li>
+            <li>Sauvegardes régulières chiffrées</li>
+        </ul>
+
+        <h2>4. Partage des Données</h2>
+        <p>
+            Nous ne partageons vos données personnelles qu'avec :
+        </p>
+        <ul>
+            <li><strong>Vous-même</strong> : via votre tableau de bord et exports</li>
+            <li><strong>Services techniques essentiels</strong> : hébergement sécurisé (avec accords de confidentialité)</li>
+            <li><strong>Autorités légales</strong> : uniquement si requis par la loi (ordre judiciaire)</li>
+        </ul>
+        <p>
+            <strong>Nous ne partageons JAMAIS vos données avec :</strong>
+        </p>
+        <ul>
+            <li>Entreprises tierces à des fins publicitaires</li>
+            <li>Courtiers en données (data brokers)</li>
+            <li>Réseaux sociaux ou plateformes de tracking</li>
+        </ul>
+
+        <h2>5. Cookies et Technologies Similaires</h2>
+        <p>
+            OctaHub utilise des cookies essentiels pour :
+        </p>
+        <ul>
+            <li><strong>Cookies de session</strong> : maintien de votre connexion</li>
+            <li><strong>Cookies de préférences</strong> : sauvegarde de vos paramètres</li>
+            <li><strong>Cookies CSRF</strong> : protection contre les attaques</li>
+        </ul>
+        <p>
+            <em>Nous n'utilisons PAS de cookies de tracking publicitaire ou de profilage.</em>
+        </p>
+
+        <h2>6. Vos Droits (RGPD)</h2>
+        <p>
+            Conformément au RGPD, vous disposez des droits suivants :
+        </p>
+        <ul>
+            <li><strong>Droit d'accès</strong> : consulter vos données personnelles</li>
+            <li><strong>Droit de rectification</strong> : modifier vos informations incorrectes</li>
+            <li><strong>Droit à l'effacement</strong> : supprimer votre compte et toutes vos données</li>
+            <li><strong>Droit à la portabilité</strong> : exporter vos données dans un format standard</li>
+            <li><strong>Droit d'opposition</strong> : refuser certaines utilisations de vos données</li>
+            <li><strong>Droit de limitation</strong> : restreindre le traitement de vos données</li>
+        </ul>
+        <p>
+            Pour exercer ces droits, contactez-nous à : <strong>privacy@octahub.com</strong>
+        </p>
+
+        <h2>7. Données de Mineurs</h2>
+        <p>
+            OctaHub n'est pas destiné aux personnes de moins de 16 ans. Nous ne collectons pas sciemment 
+            de données personnelles de mineurs. Si vous êtes parent et découvrez qu'un mineur a créé un compte, 
+            contactez-nous immédiatement pour suppression.
+        </p>
+
+        <h2>8. Données Collectées par Nos Outils</h2>
+        <p>
+            <strong>Important :</strong> Les données que vous collectez via nos outils (images, textes, métadonnées) 
+            depuis des sites tiers NE SONT PAS stockées par OctaHub de manière permanente. Seuls les exports que 
+            vous effectuez sont temporairement sauvegardés dans votre session.
+        </p>
+        <p>
+            <strong>Vous êtes responsable de l'utilisation de ces données collectées</strong> (voir nos Conditions d'Utilisation).
+        </p>
+
+        <h2>9. Transferts Internationaux</h2>
+        <p>
+            Vos données peuvent être traitées dans l'Union Européenne ou dans des pays offrant un niveau de 
+            protection équivalent au RGPD. Nous veillons à ce que tous les transferts respectent les standards 
+            de sécurité requis.
+        </p>
+
+        <h2>10. Modifications de la Politique</h2>
+        <p>
+            Nous pouvons mettre à jour cette politique de confidentialité. Les changements significatifs vous 
+            seront notifiés par email ou via une notification sur la plateforme. La date de dernière mise à jour 
+            est indiquée en haut de cette page.
+        </p>
+
+        <h2>11. Contact - Délégué à la Protection des Données</h2>
+        <p>
+            Pour toute question concernant cette politique ou vos données personnelles, contactez notre DPO :
+        </p>
+        <p>
+            <strong>Email :</strong> dpo@octahub.com<br>
+            <strong>Adresse :</strong> OctaHub - Protection des Données, [Adresse], France
+        </p>
+
+        <div class="info-box" style="background: rgba(34, 197, 94, 0.1); border-left-color: var(--success);">
+            <h3 style="color: var(--success);">✅ Notre Engagement</h3>
+            <p style="color: var(--text-muted);">
+                Nous nous engageons à protéger vos données personnelles avec les plus hauts standards de sécurité 
+                et de confidentialité. Votre confiance est notre priorité.
+            </p>
+        </div>
+
+        <a href="{% url 'landing' %}" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Retour à l'accueil
+        </a>
+    </div>
+</body>
+</html>

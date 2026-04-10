@@ -142,12 +142,19 @@
         }, 300);
 
         const formData = new FormData(form);
+        
+        // ⚡ Timeout après 60 secondes
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
         try {
             const response = await fetch('{% url "crawler_scrape" %}', {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             const data = await response.json();
             clearInterval(interval);
             if (response.ok) {
@@ -171,10 +178,14 @@
                     
                     // Stats & Whois
                     const whois = data.whois || { registrar: 'Anonyme/Inconnu', created: 'N/A', expires: 'N/A' };
+                    const sitemapStatus = data.sitemap_found ? '✓ Trouvé' : '✗ Absent';
+                    const sitemapColor = data.sitemap_found ? 'var(--success)' : 'var(--text-muted)';
                     document.getElementById('site-stats').innerHTML = `
                         <div style="margin-bottom: 1rem;">
                             <strong>URL:</strong> ${data.url}<br>
-                            <strong>Pages détectées:</strong> ${data.page_count}
+                            <strong>Pages détectées:</strong> ${data.page_count}<br>
+                            <strong>Pages analysées:</strong> ${data.pages_analyzed}<br>
+                            <strong>Sitemap:</strong> <span style="color: ${sitemapColor}">${sitemapStatus}</span>
                         </div>
                         <div style="padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
                             <p><strong>Registraire:</strong> ${whois.registrar}</p>
@@ -189,8 +200,13 @@
             }
         } catch (err) {
             clearInterval(interval);
+            clearTimeout(timeoutId);
             progressContainer.style.display = 'none';
-            alert('Erreur réseau');
+            if (err.name === 'AbortError') {
+                alert('⏱️ Le scraping prend trop de temps (>2 min). Le site a peut-être trop de pages. Essayez sans "Scan profond" ou sur un site plus petit.');
+            } else {
+                alert('❌ Erreur réseau: ' + err.message);
+            }
         } finally {
             submitBtn.disabled = false;
         }

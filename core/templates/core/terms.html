@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditions d'utilisation | OctaScraper</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: var(--bg-app);
+            padding: 2rem;
+        }
+        .terms-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        .last-updated {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        h2 {
+            color: var(--text-main);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        p {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+        }
+        .warning-box h3 {
+            color: var(--danger);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        ul {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 2rem;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="terms-container">
+        <h1>📋 Conditions d'Utilisation</h1>
+        <p class="last-updated">Dernière mise à jour : 10 avril 2026</p>
+
+        <p>
+            Bienvenue sur OctaHub. En utilisant notre plateforme et nos outils (OctaScraper, OctaSEO, OctaCrawler, OctaKeywords, etc.), 
+            vous acceptez les présentes conditions d'utilisation. Veuillez les lire attentivement.
+        </p>
+
+        <div class="warning-box">
+            <h3>⚠️ CLAUSE DE NON-RESPONSABILITÉ IMPORTANTE</h3>
+            <p style="color: var(--text-muted);">
+                <strong>OctaHub et ses développeurs ne portent AUCUNE RESPONSABILITÉ quant à l'utilisation des contenus 
+                récupérés via nos outils.</strong> L'utilisateur est seul responsable de l'usage qu'il fait des données collectées 
+                et doit s'assurer du respect des droits d'auteur, des droits à l'image, et de toutes les législations applicables.
+            </p>
+        </div>
+
+        <h2>1. Acceptation des Conditions</h2>
+        <p>
+            En créant un compte et en utilisant OctaHub, vous reconnaissez avoir lu, compris et accepté l'intégralité 
+            des présentes conditions d'utilisation ainsi que notre politique de confidentialité.
+        </p>
+
+        <h2>2. Description du Service</h2>
+        <p>
+            OctaHub fournit une suite d'outils d'analyse et d'extraction de données publiques :
+        </p>
+        <ul>
+            <li><strong>OctaScraper</strong> : Extraction d'images, vidéos, icônes et logos depuis des sites web</li>
+            <li><strong>OctaSEO</strong> : Analyse SEO de sites web (métadonnées, mots-clés, performance)</li>
+            <li><strong>OctaCrawler</strong> : Analyse technologique et design (technologies, couleurs, polices)</li>
+            <li><strong>OctaKeywords</strong> : Recherche et suggestion de mots-clés SEO</li>
+            <li><strong>OctaForms</strong> : Détection de formulaires et analyse de conversion</li>
+            <li><strong>OctaAudit</strong> : Audit complet de performances et accessibilité</li>
+        </ul>
+
+        <h2>3. Responsabilité de l'Utilisateur</h2>
+        <p>
+            <strong>Vous êtes entièrement responsable de :</strong>
+        </p>
+        <ul>
+            <li>L'utilisation légale et éthique des contenus récupérés via nos outils</li>
+            <li>Le respect des droits de propriété intellectuelle (droits d'auteur, marques déposées)</li>
+            <li>Le respect des droits à l'image et à la vie privée</li>
+            <li>La conformité avec les conditions d'utilisation des sites web que vous analysez</li>
+            <li>Le respect du fichier robots.txt des sites tiers</li>
+            <li>Toute utilisation commerciale ou redistribution de contenus protégés</li>
+        </ul>
+
+        <h2>4. Limitations et Interdictions</h2>
+        <p>
+            Il est strictement interdit d'utiliser OctaHub pour :
+        </p>
+        <ul>
+            <li>Violer des droits de propriété intellectuelle</li>
+            <li>Récupérer des données personnelles sans consentement</li>
+            <li>Surcharger ou attaquer des serveurs tiers (DDoS, scraping abusif)</li>
+            <li>Contourner des mesures de sécurité ou d'authentification</li>
+            <li>Diffuser des contenus illégaux, offensants ou malveillants</li>
+            <li>Utiliser nos outils à des fins de spam ou de phishing</li>
+            <li>Revendre ou redistribuer l'accès à nos services</li>
+        </ul>
+
+        <h2>5. Limitation de Responsabilité</h2>
+        <p>
+            <strong>OctaHub et ses développeurs ne peuvent être tenus responsables :</strong>
+        </p>
+        <ul>
+            <li>De l'utilisation inappropriée ou illégale des outils par les utilisateurs</li>
+            <li>Des dommages résultant de l'utilisation de contenus récupérés</li>
+            <li>Des violations de droits d'auteur commises par les utilisateurs</li>
+            <li>Des interruptions de service ou pertes de données</li>
+            <li>Des erreurs dans les données extraites ou analyses fournies</li>
+            <li>Des actions en justice intentées par des tiers contre les utilisateurs</li>
+        </ul>
+
+        <h2>6. Propriété Intellectuelle</h2>
+        <p>
+            OctaHub, son code source, son design et ses fonctionnalités sont la propriété exclusive de ses créateurs. 
+            Toute reproduction, distribution ou modification non autorisée est interdite.
+        </p>
+
+        <h2>7. Usage Éducatif et Professionnel</h2>
+        <p>
+            Nos outils sont conçus pour un usage éducatif, de recherche et d'analyse professionnelle. Ils doivent être 
+            utilisés dans le respect des bonnes pratiques du web et de l'éthique numérique.
+        </p>
+
+        <h2>8. Modifications des Conditions</h2>
+        <p>
+            Nous nous réservons le droit de modifier ces conditions à tout moment. Les utilisateurs seront informés 
+            des changements significatifs par email ou notification sur la plateforme.
+        </p>
+
+        <h2>9. Résiliation</h2>
+        <p>
+            Nous nous réservons le droit de suspendre ou supprimer tout compte en cas de violation de ces conditions, 
+            sans préavis ni remboursement.
+        </p>
+
+        <h2>10. Loi Applicable</h2>
+        <p>
+            Ces conditions sont régies par le droit français. Tout litige sera soumis à la juridiction exclusive 
+            des tribunaux français.
+        </p>
+
+        <h2>11. Contact</h2>
+        <p>
+            Pour toute question concernant ces conditions d'utilisation, veuillez nous contacter à : 
+            <strong>legal@octahub.com</strong>
+        </p>
+
+        <div class="warning-box" style="background: rgba(59, 130, 246, 0.1); border-left-color: var(--info);">
+            <h3 style="color: var(--info);">📌 Rappel Important</h3>
+            <p style="color: var(--text-muted);">
+                En utilisant OctaHub, vous reconnaissez être seul responsable de vos actions et de l'utilisation 
+                que vous faites des données collectées. Assurez-vous toujours d'avoir les autorisations nécessaires 
+                avant d'utiliser ou de publier des contenus tiers.
+            </p>
+        </div>
+
+        <a href="{% url 'landing' %}" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Retour à l'accueil
+        </a>
+    </div>
+</body>
+</html>

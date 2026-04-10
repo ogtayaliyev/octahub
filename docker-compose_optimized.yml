@@ -1,0 +1,95 @@
+services:
+  # ══════════════════════════════════════════════════════════
+  # REDIS CACHE - Ultra-fast in-memory cache
+  # ══════════════════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --save 900 1
+      --save 300 10
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - octahub_network
+
+  # ══════════════════════════════════════════════════════════
+  # MYSQL DATABASE
+  # ══════════════════════════════════════════════════════════
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: octahub
+      MYSQL_ROOT_PASSWORD: octahub2003
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=200
+      --innodb_buffer_pool_size=256M
+      --innodb_log_file_size=64M
+      --query_cache_size=0
+      --query_cache_type=0
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - octahub_network
+
+  # ══════════════════════════════════════════════════════════
+  # DJANGO WEB APPLICATION with Gunicorn
+  # ══════════════════════════════════════════════════════════
+  web:
+    build: .
+    restart: always
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=octahub
+      - DB_USER=root
+      - DB_PASSWORD=octahub2003
+      - DB_HOST=db
+      - DB_PORT=3306
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - octahub_network
+
+volumes:
+  redis_data:
+    driver: local
+  mysql_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+networks:
+  octahub_network:
+    driver: bridge

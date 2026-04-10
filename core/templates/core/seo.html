@@ -5,6 +5,82 @@
 
 {% block extra_css %}
 <style>
+    .summary-section {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.1));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        border: 2px solid rgba(99, 102, 241, 0.3);
+    }
+    .summary-title {
+        font-size: 1.8rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .summary-conclusion {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-box {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+    .keyword-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    .keyword-item {
+        background: rgba(99, 102, 241, 0.15);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .keyword-count {
+        background: var(--primary);
+        color: white;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .pages-title {
+        font-size: 1.5rem;
+        color: white;
+        margin: 3rem 0 1.5rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
     .seo-card {
         background: rgba(255, 255, 255, 0.05);
         border-radius: 16px;
@@ -70,7 +146,7 @@
         </div>
         <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
             <input type="checkbox" name="deep_scan" id="deep-scan" style="accent-color: var(--primary);">
-            <label for="deep-scan">Analyse multi-pages (jusqu'à 10 pages)</label>
+            <label for="deep-scan">Analyse multi-pages (jusqu'à 30 pages avec sitemap)</label>
         </div>
     </form>
 
@@ -129,11 +205,110 @@
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                     resultsContainer.style.display = 'block';
-                    resultCount.innerText = `${data.count} pages analysées`;
+                    resultCount.innerText = `Rapport SEO - ${data.count} pages analysées`;
+                    
+                    // ===== SYNTHÈSE GLOBALE =====
+                    if (data.summary) {
+                        const summarySection = document.createElement('div');
+                        summarySection.className = 'summary-section';
+                        
+                        let summaryHTML = `
+                            <h2 class="summary-title">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                                Synthèse Globale
+                            </h2>
+                            
+                            <div class="summary-conclusion">
+                                ${data.summary.conclusion}
+                            </div>
+                            
+                            <div class="summary-stats">
+                                <div class="stat-box">
+                                    <div class="stat-number">${data.summary.total_pages}</div>
+                                    <div class="stat-label">Pages analysées</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-number">${data.summary.avg_internal_links}</div>
+                                    <div class="stat-label">Liens internes/page</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-number">${data.summary.avg_external_links}</div>
+                                    <div class="stat-label">Liens externes/page</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-number">${data.summary.all_meta_keywords.length}</div>
+                                    <div class="stat-label">Mots-clés meta uniques</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Top detected keywords
+                        if (data.summary.top_keywords && data.summary.top_keywords.length > 0) {
+                            summaryHTML += `
+                                <h3 style="color: white; margin-top: 2rem; margin-bottom: 0.75rem;">🔑 Mots-clés les plus utilisés</h3>
+                                <div class="keyword-cloud">
+                                    ${data.summary.top_keywords.map(kw => `
+                                        <div class="keyword-item">
+                                            <span>${kw.word}</span>
+                                            <span class="keyword-count">${kw.count}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
+                        
+                        // Hashtags
+                        if (data.summary.top_hashtags && data.summary.top_hashtags.length > 0) {
+                            summaryHTML += `
+                                <h3 style="color: white; margin-top: 2rem; margin-bottom: 0.75rem;">#️⃣ Hashtags détectés</h3>
+                                <div class="keyword-cloud">
+                                    ${data.summary.top_hashtags.map(tag => `
+                                        <div class="keyword-item" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.3);">
+                                            <span>#${tag.tag}</span>
+                                            <span class="keyword-count" style="background: var(--accent);">${tag.count}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
+                        
+                        // Meta keywords
+                        if (data.summary.all_meta_keywords && data.summary.all_meta_keywords.length > 0) {
+                            summaryHTML += `
+                                <h3 style="color: white; margin-top: 2rem; margin-bottom: 0.75rem;">📌 Mots-clés meta (balises)</h3>
+                                <div class="tag-list">
+                                    ${data.summary.all_meta_keywords.map(k => `<span class="tag" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3);">${k}</span>`).join('')}
+                                </div>
+                            `;
+                        }
+                        
+                        summarySection.innerHTML = summaryHTML;
+                        resultsList.appendChild(summarySection);
+                    }
+                    
+                    // ===== RÉSULTATS DÉTAILLÉS PAR PAGE =====
+                    const pagesTitle = document.createElement('h2');
+                    pagesTitle.className = 'pages-title';
+                    pagesTitle.textContent = '📄 Résultats détaillés par page';
+                    resultsList.appendChild(pagesTitle);
                     
                     data.results.forEach(res => {
                         const card = document.createElement('div');
                         card.className = 'seo-card';
+                        
+                        let hashtagsHTML = '';
+                        if (res.hashtags && res.hashtags.length > 0) {
+                            hashtagsHTML = `
+                                <div class="meta-box">
+                                    <h4>Hashtags</h4>
+                                    <div class="tag-list">${res.hashtags.map(h => `<span class="tag" style="background: rgba(14, 165, 233, 0.2);">#${h}</span>`).join('')}</div>
+                                </div>
+                            `;
+                        }
+                        
                         card.innerHTML = `
                             <div class="seo-header">
                                 <h3 style="color: white;">${res.title}</h3>
@@ -142,7 +317,7 @@
                             <div class="seo-meta">
                                 <div class="meta-box">
                                     <h4>Description</h4>
-                                    <p class="meta-value">${res.description || 'N/A'}</p>
+                                    <p class="meta-value">${res.description || '<span style="color: var(--danger);">❌ Aucune description</span>'}</p>
                                 </div>
                                 <div class="meta-box">
                                     <h4>Liens</h4>
@@ -150,15 +325,16 @@
                                 </div>
                                 <div class="meta-box">
                                     <h4>Mots-clés (Meta)</h4>
-                                    <div class="tag-list">${res.keywords.map(k => `<span class="tag">${k}</span>`).join('') || 'N/A'}</div>
+                                    <div class="tag-list">${res.keywords.length > 0 ? res.keywords.map(k => `<span class="tag">${k}</span>`).join('') : '<span style="color: var(--text-muted);">Aucun</span>'}</div>
                                 </div>
                                 <div class="meta-box">
                                     <h4>Mots-clés Détectés</h4>
                                     <div class="tag-list">${res.detected_keywords.map(k => `<span class="tag" style="background: rgba(99, 102, 241, 0.2);">${k}</span>`).join('') || 'N/A'}</div>
                                 </div>
+                                ${hashtagsHTML}
                                 <div class="meta-box">
                                     <h4>H1 Tags</h4>
-                                    <div class="tag-list">${res.h1.map(t => `<span class="tag">${t}</span>`).join('') || 'N/A'}</div>
+                                    <div class="tag-list">${res.h1.length > 0 ? res.h1.map(t => `<span class="tag">${t}</span>`).join('') : '<span style="color: var(--text-muted);">Aucun</span>'}</div>
                                 </div>
                                 <div class="meta-box">
                                     <h4>Balise Canonique</h4>
