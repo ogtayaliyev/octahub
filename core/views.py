@@ -506,35 +506,114 @@ def forms_scrape(request):
     if request.method == 'POST':
         url_raw = request.POST.get('url')
         if not url_raw: return JsonResponse({'error': 'URL manquant'}, status=400)
-        url = normalize_url(url_raw)
+        start_url = normalize_url(url_raw)
         session = requests.Session()
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        
+        all_forms_data = []
+        visited_urls = set()
+        
+        # Phase 1: Identify high-probability pages (Deep Discovery)
         try:
-            try:
-                res = session.get(url, timeout=10, headers=headers, verify=False)
-                res.raise_for_status()
-            except:
-                if url.startswith('https://'):
-                    url = url.replace('https://', 'http://')
-                    res = session.get(url, timeout=10, headers=headers, verify=False)
-                else: raise
+            home_res = session.get(start_url, timeout=7, headers=headers, verify=False)
+            home_soup = BeautifulSoup(home_res.text, 'html.parser')
+            base = start_url.rstrip('/')
             
-            soup = BeautifulSoup(res.text, 'html.parser')
-            forms_data = []
-            for i, form in enumerate(soup.find_all('form')):
-                inputs = []
-                for inp in form.find_all(['input', 'textarea', 'select']):
-                    label_text = ''
-                    if inp.get('id'):
-                        label_tag = soup.find('label', attrs={'for': inp.get('id')})
-                        if label_tag: label_text = label_tag.get_text().strip()
-                    if not label_text: label_text = inp.get('placeholder') or inp.get('name') or inp.get('aria-label') or 'Sans label'
-                    inputs.append({'type': inp.get('type', inp.name), 'name': inp.get('name', 'N/A'), 'label': label_text, 'required': inp.has_attr('required')})
-                forms_data.append({'id': form.get('id', f'Form {i+1}'), 'action': form.get('action', '#'), 'method': form.get('method', 'GET').upper(), 'inputs': inputs})
-            return JsonResponse({'forms': forms_data, 'count': len(forms_data)})
-        except requests.exceptions.ConnectionError:
-            return JsonResponse({'error': 'La connexion a été refusée par le site cible. Vérifiez l\'URL ou réessayez plus tard.'}, status=400)
-        except Exception as e: return JsonResponse({'error': f'Erreur lors du scan: {str(e)}'}, status=400)
+            # Smart URL seed (prioritize common patterns + found links)
+            urls_to_scan = [start_url]
+            # Heuristic: look for links mentioning contact/devis/etc.
+            for a in home_soup.find_all('a', href=True):
+                href = a['href'].lower()
+                if any(x in href for x in ['contact', 'devis', 'form', 'inscription', 'signup', 'login', 'contactus']):
+                    full_link = urljoin(start_url, a['href']).split('#')[0].rstrip('/')
+                    if urlparse(start_url).netloc in urlparse(full_link).netloc:
+                        urls_to_scan.append(full_link)
+            
+            # Static fallbacks just in case
+            urls_to_scan.extend([f"{base}/contactus", f"{base}/contact", f"{base}/devis", f"{base}/contact-us"])
+            urls_to_scan = list(dict.fromkeys(urls_to_scan))[:8] # Top 8 candidates
+        except:
+            urls_to_scan = [start_url]
+
+        # Phase 2: Systematic Extraction
+        for url in urls_to_scan:
+            if url in visited_urls: continue
+            visited_urls.add(url)
+            try:
+                res = session.get(url, timeout=7, headers=headers, verify=False)
+                if not res.ok: continue
+                soup = BeautifulSoup(res.text, 'html.parser')
+                
+                # Internal function to extract field data
+                def get_field_info(el):
+                    tp = el.get('type', el.name).lower()
+                    if tp in ['hidden', 'submit', 'button']: return None
+                    
+                    # Logic 999999999: Label discovery
+                    label = ''
+                    if el.get('id'):
+                        lb = soup.find('label', attrs={'for': el.get('id')})
+                        if lb: label = lb.get_text().strip()
+                    if not label: label = el.get('placeholder') or el.get('name') or el.get('aria-label') or 'Champ'
+                    
+                    return {
+                        'type': tp,
+                        'name': el.get('name', 'N/A'),
+                        'id': el.get('id', 'N/A'),
+                        'label': label.capitalize(),
+                        'required': el.has_attr('required') or 'required' in (el.get('class') or [])
+                    }
+
+                # Strategy A: Standard Forms
+                for i, form in enumerate(soup.find_all('form')):
+                    fields = []
+                    for inp in form.find_all(['input', 'textarea', 'select']):
+                        info = get_field_info(inp)
+                        if info: fields.append(info)
+                    
+                    if fields:
+                        all_forms_data.append({
+                            'page': urlparse(url).path or '/',
+                            'id': form.get('id', form.get('name', f'Form {len(all_forms_data)+1}')),
+                            'action': form.get('action', '#'),
+                            'method': form.get('method', 'POST').upper(),
+                            'fields': fields,
+                            'tech': 'Standard HTML'
+                        })
+
+                # Strategy B: Odoo / Dynamic JS Forms (Containers)
+                # Look for divs that look like forms
+                for container in soup.find_all(['div', 'section'], class_=re.compile(r'form|s_website_form|contact', re.I)):
+                    # Check if this container was already handled inside a <form>
+                    if container.find_parent('form'): continue
+                    
+                    fields = []
+                    for inp in container.find_all(['input', 'textarea', 'select']):
+                        # Only pick if not already categorized
+                        info = get_field_info(inp)
+                        if info: fields.append(info)
+                    
+                    if len(fields) >= 2: # High probability of being a real form
+                        all_forms_data.append({
+                            'page': urlparse(url).path or '/',
+                            'id': container.get('id') or container.get('class')[0] if container.get('class') else 'Dynamic Form',
+                            'action': 'AJAX / Dynamic',
+                            'method': 'POST',
+                            'fields': fields,
+                            'tech': 'Odoo/JS Component'
+                        })
+            except: continue
+
+        # Deduplicate forms based on fields signature
+        unique_forms = []
+        seen_sigs = set()
+        for f in all_forms_data:
+            sig = "-".join([fields['name'] for fields in f['fields']])
+            if sig not in seen_sigs:
+                seen_sigs.add(sig)
+                unique_forms.append(f)
+
+        return JsonResponse({'forms': unique_forms, 'count': len(unique_forms)})
     return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 
