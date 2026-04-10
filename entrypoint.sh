@@ -1,7 +1,12 @@
 #!/bin/sh
+set -e
 
-# Seed delay to ensure network is fully stable
+# Wait for database to be ready
 sleep 2
+
+# Collect static files
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
 
 # Run migrations
 echo "Running migrations..."
@@ -17,9 +22,9 @@ email = 'ogtay.a@outlook.com'
 password = 'Ogtay2003.'
 if not User.objects.filter(username=username).exists():
     User.objects.create_superuser(username, email, password)
-    print(f'Superuser "{username}" created.')
+    print('Superuser created.')
 else:
-    print(f'Superuser "{username}" already exists.')
+    print('Superuser already exists.')
 EOF
 
 # Start server

@@ -11,8 +11,10 @@
     <style>
         body {
             display: flex;
+            margin: 0;
             padding: 0;
             overflow: hidden;
+            min-height: 100vh;
         }
         .sidebar {
             width: 280px;
@@ -23,6 +25,8 @@
             flex-direction: column;
             padding: 2rem 0;
             flex-shrink: 0;
+            position: relative;
+            z-index: 10;
         }
         .sidebar-brand {
             padding: 0 2rem;
@@ -88,7 +92,7 @@
             height: 100vh;
             overflow-y: auto;
             padding: 3rem;
-            background: var(--bg-dark);
+            background: var(--bg-app);
         }
         .user-pill {
             display: flex;

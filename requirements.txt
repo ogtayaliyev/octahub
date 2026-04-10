@@ -4,3 +4,4 @@ beautifulsoup4
 mysqlclient
 python-dotenv
 gunicorn
+whitenoise
